@@ -12,7 +12,7 @@
                 "extensions.verifySignature": false
             },
             "extensions": [
-                "pgourlain.erlang@0.8.3"
+                "erlang-ls.erlang-ls@0.0.32"
             ]
         }
     }
