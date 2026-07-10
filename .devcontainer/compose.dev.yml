@@ -1,0 +1,18 @@
+version: '3.8'
+
+services:
+  alert-manager:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    volumes:
+      - ..:/workspace:cached
+    environment:
+      - REBAR_BASE_DIR=/workspace/_build
+    command: sleep infinity   # чтобы контейнер не завершался после сборки
+    networks:
+      - alert-net
+
+networks:
+  alert-net:
+    driver: bridge
