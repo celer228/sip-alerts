@@ -9,7 +9,7 @@ RUN sed -i 's/deb.debian.org/archive.debian.org/g' /etc/apt/sources.list && \
     
 RUN apt-get update && \
     apt-get install -y --no-install-recommends \
-        curl git build-essential
+        curl git build-essential netcat iputils-ping jq
     # rm -rf /var/lib/apt/lists/*
 
 # По информации из https://github.com/erlang/docker-erlang-otp/blob/master/21/Dockerfile,

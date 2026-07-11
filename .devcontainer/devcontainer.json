@@ -1,7 +1,7 @@
 {
     "name": "SIP alerts dev container",
     "dockerComposeFile": ["compose.dev.yml"],
-    "service": "alert-manager",
+    "service": "sip-alerts",
     "workspaceFolder": "/workspace",
     
     "customizations": {
