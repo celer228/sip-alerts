@@ -6,4 +6,6 @@
 
 1. Открыть в VS Code папку проекта
 2. Открыть Command Palette (F1), выбрать **Dev Containers: Reopen in Container**
+3. Для проверки работы Prometheus и AlertManager в браузере откройте localhost по портам 9090 и 9093
+4. Для проверки отсылки тестового алерта отправьте GET на http://localhost:9191/\_\_last_request\_\_
 3. Profit!

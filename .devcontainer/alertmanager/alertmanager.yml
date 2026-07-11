@@ -1,0 +1,17 @@
+route:
+  receiver: webhook_receiver
+  # Специально настроили минимальные значения, чтобы тестировать работу alertmanager в devcontainer
+
+  # Подождать перед первой отправкой
+  group_wait: 5s
+  # Минимальный интервал между уведомлениями одной группы
+  group_interval: 10s
+  # Повторять уведомление об активном алерте каждые 30 секунд
+  repeat_interval: 30s
+
+receivers:
+  - name: webhook_receiver
+    webhook_configs:
+      # - url: http://sip-alerts:8080/webhook       # URL нашего erlang-application
+      - url: http://request-catcher:5000/webhook    # для теста вебхука
+        send_resolved: false

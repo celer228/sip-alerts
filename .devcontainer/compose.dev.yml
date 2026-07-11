@@ -1,7 +1,5 @@
-version: '3.8'
-
 services:
-  alert-manager:
+  sip-alerts:
     build:
       context: .
       dockerfile: Dockerfile
@@ -10,8 +8,51 @@ services:
     environment:
       - REBAR_BASE_DIR=/workspace/_build
     command: sleep infinity   # чтобы контейнер не завершался после сборки
+    ports:
+      - "8080:8080"
     networks:
       - alert-net
+
+  prometheus:
+    image: prom/prometheus:latest
+
+    restart: unless-stopped
+    
+    volumes:
+      - ./prometheus/:/etc/prometheus/
+
+    ports:
+      - "9090:9090"
+
+    networks:
+      - alert-net
+
+    depends_on:
+      - alertmanager
+
+  alertmanager:
+    image: prom/alertmanager:latest
+
+    volumes:
+      - ./alertmanager/alertmanager.yml:/etc/alertmanager/alertmanager.yml
+
+    command:
+      - "--config.file=/etc/alertmanager/alertmanager.yml"
+
+    ports:
+      - "9093:9093"
+
+    networks:
+      - alert-net
+
+  request-catcher:
+    build:
+      context: ./http-request-catcher
+    ports: 
+      - "9191:5000"
+    networks:
+      - alert-net
+
 
 networks:
   alert-net:
