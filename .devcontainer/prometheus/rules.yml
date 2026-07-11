@@ -1,0 +1,15 @@
+groups:
+
+- name: test
+
+  rules:
+
+  - alert: TestAlert
+    expr: vector(1) # This is a test alert that will always fire
+    for: 10s
+    labels:
+      severity: critical
+    annotations:
+      summary: "Test alarm"
+
+      description: "This is only a test."
