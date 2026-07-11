@@ -12,7 +12,6 @@ route:
 receivers:
   - name: webhook_receiver
     webhook_configs:
-     # URL нашего erlang-applicaation = http://sip-alerts:8080/webhook
-     # Для тестов в качестве принимающего URL можно использовать сервис https://webhook.site/ (тестовый URL будет выдан на сайте, может понадобиться регистрация)
-      - url: http://sip-alerts:8080/webhook
+      # - url: http://sip-alerts:8080/webhook       # URL нашего erlang-application
+      - url: http://request-catcher:5000/webhook    # для теста вебхука
         send_resolved: false
