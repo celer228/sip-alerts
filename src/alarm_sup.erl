@@ -13,6 +13,9 @@
 
 -define(SERVER, ?MODULE).
 
+% Временная заглушка для тестирования супервизора
+-define(DUMMY, dummy_server).
+
 start_link() ->
     supervisor:start_link({local, ?SERVER}, ?MODULE, []).
 
@@ -26,30 +29,30 @@ start_link() ->
 %%                  type => worker(),       % optional
 %%                  modules => modules()}   % optional
 init([]) ->
-    AlarmDb = #{id => aladrm_db,
-                  start => {aladrm_db, start_link(), []},
-                  restart => permament,
+    AlarmDb = #{id => alarm_db,
+                  start => {?DUMMY , start_link, [alarm_db]},
+                  restart => permanent,
                   shutdown => 5000,
                   type => worker,
                   modules => [aladrm_db]},
 
     AlarmManager = #{id => alarm_manager,
-                  start => {alarm_manager, start_link(), []},
-                  restart => permament,
+                  start => {?DUMMY , start_link, [alarm_manager]},
+                  restart => permanent,
                   shutdown => 5000,
                   type => worker,
                   modules => [alarm_manager]},
 
     TimerQueue = #{id => timer_queue,
-                  start => {timer_queue, start_link(), []},
-                  restart => permament,
+                  start => {?DUMMY , start_link, [timer_queue]},
+                  restart => permanent,
                   shutdown => 5000,
                   type => worker,
                   modules => [timer_queue]},
 
     AlarmLog = #{id => alarm_log,
-                  start => {alarm_log, start_link(), []},
-                  restart => permament,
+                  start => {?DUMMY , start_link, [alarm_log]},
+                  restart => permanent,
                   shutdown => 5000,
                   type => worker,
                   modules => [alarm_log]},

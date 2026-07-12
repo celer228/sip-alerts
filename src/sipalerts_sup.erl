@@ -26,23 +26,23 @@ start_link() ->
 %%                  type => worker(),       % optional
 %%                  modules => modules()}   % optional
 init([]) ->
-    CowboySup = #{id => cowboy_sup,
-                  start => {cowboy_sup, start_link(), []},
-                  restart => permament,
+    HttpSup = #{id => http_sup,
+                  start => {http_sup, start_link, []},
+                  restart => permanent,
                   shutdown => 5000,
                   type => supervisor,
-                  modules => [cowboy_sup]},
+                  modules => [http_sup]},
 
     AlarmSup = #{id => alarm_sup,
-                  start => {alarm_sup, start_link(), []},
-                  restart => permament,
+                  start => {alarm_sup, start_link, []},
+                  restart => permanent,
                   shutdown => infinity,
                   type => supervisor,
                   modules => [alarm_sup]},
 
     SipSup = #{id => sip_sup,
-                  start => {sip_sup, start_link(), []},
-                  restart => permament,
+                  start => {sip_sup, start_link, []},
+                  restart => permanent,
                   shutdown => infinity,
                   type => supervisor,
                   modules => [sip_sup]},
@@ -50,7 +50,7 @@ init([]) ->
     SupFlags = #{strategy => one_for_one,
                  intensity => 5,
                  period => 10},
-    ChildSpecs = [CowboySup, AlarmSup, SipSup],
+    ChildSpecs = [HttpSup, AlarmSup, SipSup],
     {ok, {SupFlags, ChildSpecs}}.
 
 %% internal functions
