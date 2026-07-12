@@ -5,10 +5,9 @@
 %% Публичное API.
 -export([
     start_link/0,
-    add_timer/4,
-    restore_timer/4,
-    cancel_timer/1,
-    list_timers/0
+    add/3,
+    cancel/1,
+    list/0
 ]).
 
 %% Callback-функции gen_server.
@@ -21,121 +20,120 @@
     code_change/3
 ]).
 
+%% Идентификатор генерируется самим модулем при создании таймера.
+-type timer_id() :: reference().
+
+%% Получатель уведомления о завершении таймера.
+-type destination() ::
+    pid()
+    | atom()
+    | {atom(), node()}.
+
+%% Внутренняя информация об активном таймере.
+-type timer_info() :: #{
+    timer_ref := reference(),
+    deadline_ms := integer(),
+    destination := destination(),
+    message := term()
+}.
+
+%% Состояние процесса очереди таймеров.
+-type state() :: #{
+    timers := #{timer_id() => timer_info()}
+}.
+
 %% Запуск процесса очереди таймеров.
+-spec start_link() ->
+    {ok, pid()}
+    | ignore
+    | {error, term()}.
+
 start_link() ->
     gen_server:start_link({local, ?MODULE}, ?MODULE, [], []).
 
-%% Добавление и запуск нового таймера.
-add_timer(TimerId, DelayMs, Destination, Message) ->
+%% Добавление таймера с задержкой в миллисекундах.
+%% Идентификатор таймера генерируется внутри модуля.
+-spec add(
+    DelayMs :: non_neg_integer(),
+    Destination :: destination(),
+    Message :: term()
+) ->
+    {ok, timer_id()}
+    | {error, invalid_delay}.
+
+add(DelayMs, Destination, Message) ->
     gen_server:call(
         ?MODULE,
-        {add_timer, TimerId, DelayMs, Destination, Message}
+        {add, DelayMs, Destination, Message}
     ).
 
-%% Восстановление таймера по абсолютному времени срабатывания.
-restore_timer(TimerId, DeadlineMs, Destination, Message) ->
-    gen_server:call(
-        ?MODULE,
-        {restore_timer, TimerId, DeadlineMs, Destination, Message}
-    ).
+%% Отмена активного таймера.
+-spec cancel(TimerId :: timer_id()) ->
+    ok
+    | {error, not_found}.
 
-%% Отмена существующего таймера.
-cancel_timer(TimerId) ->
-    gen_server:call(?MODULE, {cancel_timer, TimerId}).
+cancel(TimerId) ->
+    gen_server:call(?MODULE, {cancel, TimerId}).
 
-%% Получение списка активных таймеров.
-list_timers() ->
-    gen_server:call(?MODULE, list_timers).
+%% Получение информации об активных таймерах.
+-spec list() ->
+    #{timer_id() => timer_info()}.
 
-%% Инициализация состояния очереди таймеров.
+list() ->
+    gen_server:call(?MODULE, list).
+
+%% Инициализация пустого состояния очереди.
+-spec init([]) ->
+    {ok, state()}.
+
 init([]) ->
     {ok, #{timers => #{}}}.
 
-%% Создание нового таймера.
+%% Создание и запуск нового таймера.
+-spec handle_call(
+    Request :: term(),
+    From :: {pid(), term()},
+    State :: state()
+) ->
+    {reply, term(), state()}.
+
 handle_call(
-    {add_timer, TimerId, DelayMs, Destination, Message},
+    {add, DelayMs, Destination, Message},
     _From,
     State = #{timers := Timers}
 ) when is_integer(DelayMs), DelayMs >= 0 ->
-    case maps:is_key(TimerId, Timers) of
-        true ->
-            {reply, {error, already_exists}, State};
+    TimerId = make_ref(),
+    DeadlineMs = current_time_ms() + DelayMs,
 
-        false ->
-            DeadlineMs = current_time_ms() + DelayMs,
-            TimerRef = erlang:send_after(
-                DelayMs,
-                self(),
-                {timer_expired, TimerId}
-            ),
+    TimerRef = erlang:send_after(
+        DelayMs,
+        self(),
+        {timer_expired, TimerId}
+    ),
 
-            TimerInfo = #{
-                timer_ref => TimerRef,
-                deadline_ms => DeadlineMs,
-                destination => Destination,
-                message => Message
-            },
+    TimerInfo = #{
+        timer_ref => TimerRef,
+        deadline_ms => DeadlineMs,
+        destination => Destination,
+        message => Message
+    },
 
-            NewTimers = maps:put(TimerId, TimerInfo, Timers),
-            NewState = State#{timers := NewTimers},
+    NewTimers = maps:put(TimerId, TimerInfo, Timers),
+    NewState = State#{timers := NewTimers},
 
-            {reply, {ok, TimerId}, NewState}
-    end;
+    {reply, {ok, TimerId}, NewState};
 
-%% Проверка корректности задержки.
+%% Обработка некорректного значения задержки.
 handle_call(
-    {add_timer, _TimerId, _DelayMs, _Destination, _Message},
+    {add, _DelayMs, _Destination, _Message},
     _From,
     State
 ) ->
     {reply, {error, invalid_delay}, State};
 
-%% Восстановление таймера из сохранённых данных.
-handle_call(
-    {restore_timer, TimerId, DeadlineMs, Destination, Message},
-    _From,
-    State = #{timers := Timers}
-) when is_integer(DeadlineMs) ->
-    case maps:is_key(TimerId, Timers) of
-        true ->
-            {reply, {error, already_exists}, State};
-
-        false ->
-            RemainingMs = erlang:max(
-                0,
-                DeadlineMs - current_time_ms()
-            ),
-
-            TimerRef = erlang:send_after(
-                RemainingMs,
-                self(),
-                {timer_expired, TimerId}
-            ),
-
-            TimerInfo = #{
-                timer_ref => TimerRef,
-                deadline_ms => DeadlineMs,
-                destination => Destination,
-                message => Message
-            },
-
-            NewTimers = maps:put(TimerId, TimerInfo, Timers),
-            NewState = State#{timers := NewTimers},
-
-            {reply, {ok, TimerId}, NewState}
-    end;
-
-%% Проверка корректности абсолютного времени срабатывания.
-handle_call(
-    {restore_timer, _TimerId, _DeadlineMs, _Destination, _Message},
-    _From,
-    State
-) ->
-    {reply, {error, invalid_deadline}, State};
-
 %% Отмена существующего таймера.
 handle_call(
-    {cancel_timer, TimerId},
+    {cancel, TimerId},
     _From,
     State = #{timers := Timers}
 ) ->
@@ -152,16 +150,28 @@ handle_call(
     end;
 
 %% Получение активных таймеров.
-handle_call(list_timers, _From, State = #{timers := Timers}) ->
+handle_call(list, _From, State = #{timers := Timers}) ->
     {reply, Timers, State};
 
 handle_call(_Request, _From, State) ->
     {reply, {error, unsupported_request}, State}.
 
+-spec handle_cast(
+    Message :: term(),
+    State :: state()
+) ->
+    {noreply, state()}.
+
 handle_cast(_Message, State) ->
     {noreply, State}.
 
-%% Обработка срабатывания таймера.
+%% Отправка уведомления при завершении таймера.
+-spec handle_info(
+    Message :: term(),
+    State :: state()
+) ->
+    {noreply, state()}.
+
 handle_info(
     {timer_expired, TimerId},
     State = #{timers := Timers}
@@ -177,18 +187,34 @@ handle_info(
             {noreply, State#{timers := NewTimers}};
 
         error ->
+            %% Таймер мог быть отменён до обработки сообщения.
             {noreply, State}
     end;
 
 handle_info(_Message, State) ->
     {noreply, State}.
 
+-spec terminate(
+    Reason :: term(),
+    State :: state()
+) ->
+    ok.
+
 terminate(_Reason, _State) ->
     ok.
+
+-spec code_change(
+    OldVersion :: term(),
+    State :: state(),
+    Extra :: term()
+) ->
+    {ok, state()}.
 
 code_change(_OldVersion, State, _Extra) ->
     {ok, State}.
 
 %% Получение текущего системного времени в миллисекундах.
+-spec current_time_ms() -> integer().
+
 current_time_ms() ->
     erlang:system_time(millisecond).
