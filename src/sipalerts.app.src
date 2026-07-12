@@ -5,7 +5,8 @@
   {mod, {sipalerts_app, []}},
   {applications,
    [kernel,
-    stdlib
+    stdlib,
+    nksip
    ]},
   {env,[]},
   {modules, []},
