@@ -6,6 +6,7 @@
 -export([
     start_link/0,
     add_timer/4,
+    restore_timer/4,
     cancel_timer/1,
     list_timers/0
 ]).
@@ -31,8 +32,14 @@ add_timer(TimerId, DelayMs, Destination, Message) ->
         {add_timer, TimerId, DelayMs, Destination, Message}
     ).
 
-%% Запрос на отмену существующего таймера.
-%% Логика отмены будет добавлена на следующем этапе.
+%% Восстановление таймера по абсолютному времени срабатывания.
+restore_timer(TimerId, DeadlineMs, Destination, Message) ->
+    gen_server:call(
+        ?MODULE,
+        {restore_timer, TimerId, DeadlineMs, Destination, Message}
+    ).
+
+%% Отмена существующего таймера.
 cancel_timer(TimerId) ->
     gen_server:call(?MODULE, {cancel_timer, TimerId}).
 
@@ -82,6 +89,49 @@ handle_call(
     State
 ) ->
     {reply, {error, invalid_delay}, State};
+
+%% Восстановление таймера из сохранённых данных.
+handle_call(
+    {restore_timer, TimerId, DeadlineMs, Destination, Message},
+    _From,
+    State = #{timers := Timers}
+) when is_integer(DeadlineMs) ->
+    case maps:is_key(TimerId, Timers) of
+        true ->
+            {reply, {error, already_exists}, State};
+
+        false ->
+            RemainingMs = erlang:max(
+                0,
+                DeadlineMs - current_time_ms()
+            ),
+
+            TimerRef = erlang:send_after(
+                RemainingMs,
+                self(),
+                {timer_expired, TimerId}
+            ),
+
+            TimerInfo = #{
+                timer_ref => TimerRef,
+                deadline_ms => DeadlineMs,
+                destination => Destination,
+                message => Message
+            },
+
+            NewTimers = maps:put(TimerId, TimerInfo, Timers),
+            NewState = State#{timers := NewTimers},
+
+            {reply, {ok, TimerId}, NewState}
+    end;
+
+%% Проверка корректности абсолютного времени срабатывания.
+handle_call(
+    {restore_timer, _TimerId, _DeadlineMs, _Destination, _Message},
+    _From,
+    State
+) ->
+    {reply, {error, invalid_deadline}, State};
 
 %% Отмена существующего таймера.
 handle_call(
