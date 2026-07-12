@@ -83,9 +83,23 @@ handle_call(
 ) ->
     {reply, {error, invalid_delay}, State};
 
-%% Отмена пока не реализована.
-handle_call({cancel_timer, _TimerId}, _From, State) ->
-    {reply, {error, not_implemented}, State};
+%% Отмена существующего таймера.
+handle_call(
+    {cancel_timer, TimerId},
+    _From,
+    State = #{timers := Timers}
+) ->
+    case maps:find(TimerId, Timers) of
+        {ok, TimerInfo} ->
+            TimerRef = maps:get(timer_ref, TimerInfo),
+            _ = erlang:cancel_timer(TimerRef),
+
+            NewTimers = maps:remove(TimerId, Timers),
+            {reply, ok, State#{timers := NewTimers}};
+
+        error ->
+            {reply, {error, not_found}, State}
+    end;
 
 %% Получение активных таймеров.
 handle_call(list_timers, _From, State = #{timers := Timers}) ->
