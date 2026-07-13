@@ -26,22 +26,31 @@ start_link() ->
 %%                  type => worker(),       % optional
 %%                  modules => modules()}   % optional
 init([]) ->
-    SupFlags = #{
-        strategy => one_for_all,
-        intensity => 5,
-        period => 10
-    },
+    HttpSup = #{id => http_sup,
+                  start => {http_sup, start_link, []},
+                  restart => permanent,
+                  shutdown => 5000,
+                  type => supervisor,
+                  modules => [http_sup]},
 
-    TimerQueue = #{
-        id => timer_queue,
-        start => {timer_queue, start_link, []},
-        restart => permanent,
-        shutdown => 5000,
-        type => worker,
-        modules => [timer_queue]
-    },
+    AlarmSup = #{id => alarm_sup,
+                  start => {alarm_sup, start_link, []},
+                  restart => permanent,
+                  shutdown => infinity,
+                  type => supervisor,
+                  modules => [alarm_sup]},
 
-    ChildSpecs = [TimerQueue],
+    SipSup = #{id => sip_sup,
+                  start => {sip_sup, start_link, []},
+                  restart => permanent,
+                  shutdown => infinity,
+                  type => supervisor,
+                  modules => [sip_sup]},
+
+    SupFlags = #{strategy => one_for_one,
+                 intensity => 5,
+                 period => 10},
+    ChildSpecs = [HttpSup, AlarmSup, SipSup],
     {ok, {SupFlags, ChildSpecs}}.
 
 %% internal functions
