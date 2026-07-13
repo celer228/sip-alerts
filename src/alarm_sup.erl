@@ -30,28 +30,28 @@ start_link() ->
 %%                  modules => modules()}   % optional
 init([]) ->
     AlarmDb = #{id => alarm_db,
-                  start => {?DUMMY , start_link, [alarm_db]},
+                  start => {?DUMMY, start_link, [alarm_db]},
                   restart => permanent,
                   shutdown => 5000,
                   type => worker,
                   modules => [alarm_db]},
 
     AlarmManager = #{id => alarm_manager,
-                  start => {?DUMMY , start_link, [alarm_manager]},
+                  start => {?DUMMY, start_link, [alarm_manager]},
                   restart => permanent,
                   shutdown => 5000,
                   type => worker,
                   modules => [alarm_manager]},
 
     TimerQueue = #{id => timer_queue,
-                  start => {?DUMMY , start_link, [timer_queue]},
+                  start => {timer_queue, start_link, []},
                   restart => permanent,
                   shutdown => 5000,
                   type => worker,
                   modules => [timer_queue]},
 
     AlarmLog = #{id => alarm_log,
-                  start => {?DUMMY , start_link, [alarm_log]},
+                  start => {?DUMMY, start_link, [alarm_log]},
                   restart => permanent,
                   shutdown => 5000,
                   type => worker,
