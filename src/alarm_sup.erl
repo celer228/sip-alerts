@@ -34,7 +34,7 @@ init([]) ->
                   restart => permanent,
                   shutdown => 5000,
                   type => worker,
-                  modules => [aladrm_db]},
+                  modules => [alarm_db]},
 
     AlarmManager = #{id => alarm_manager,
                   start => {?DUMMY , start_link, [alarm_manager]},
