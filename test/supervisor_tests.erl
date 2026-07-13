@@ -11,6 +11,7 @@ supervisor_test_() ->
             ?_test(main_sup_children()),
             ?_test(alarm_sup_children()),
             ?_test(alarm_manager_restart()),
+            ?_test(alarm_sup_restart()),
             ?_test(timer_queue_restart())
      ]}.
 
@@ -67,6 +68,23 @@ alarm_manager_restart() ->
 
     ?assert(is_pid(NewPid)),
     ?assertNotEqual(OldPid, NewPid).
+
+alarm_sup_restart() ->
+
+    {alarm_manager, Pid, _, _} =
+        lists:keyfind(alarm_manager, 1,
+            supervisor:which_children(alarm_sup)),
+
+    exit(whereis(alarm_sup), kill),
+
+    timer:sleep(300),
+
+    {alarm_manager, NewPid, _, _} =
+        lists:keyfind(alarm_manager, 1,
+            supervisor:which_children(alarm_sup)),
+
+    ?assert(is_pid(NewPid)),
+    ?assertNotEqual(Pid, NewPid).
 
 timer_queue_restart() ->
 
