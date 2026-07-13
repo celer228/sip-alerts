@@ -26,10 +26,22 @@ start_link() ->
 %%                  type => worker(),       % optional
 %%                  modules => modules()}   % optional
 init([]) ->
-    SupFlags = #{strategy => one_for_all,
-                 intensity => 0,
-                 period => 1},
-    ChildSpecs = [],
+    SupFlags = #{
+        strategy => one_for_all,
+        intensity => 5,
+        period => 10
+    },
+
+    TimerQueue = #{
+        id => timer_queue,
+        start => {timer_queue, start_link, []},
+        restart => permanent,
+        shutdown => 5000,
+        type => worker,
+        modules => [timer_queue]
+    },
+
+    ChildSpecs = [TimerQueue],
     {ok, {SupFlags, ChildSpecs}}.
 
 %% internal functions
