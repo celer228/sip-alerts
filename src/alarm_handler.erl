@@ -4,7 +4,7 @@
 -export([init/2]).
 
 -include("alert.hrl").
--include("debug.hrl").
+-include("debuger.hrl").
 
 init(Req0, State) ->
     Method = cowboy_req:method(Req0),
@@ -15,7 +15,7 @@ init(Req0, State) ->
             Webhook = jsx:decode(Body, [return_maps]),
             Source = cowboy_req:binding(source, Req0),
 
-            ?DEBUG("Webhook = ~p~nSource = ~p~n", [Webhook, Source]),
+            ?DEBUGER("Webhook = ~p~nSource = ~p~n", [Webhook, Source]),
 
             Res = case Source of
                 <<"prometheus">> -> prometheus_adapter:normalize(Webhook);

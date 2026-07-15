@@ -1,3 +1,6 @@
+-ifndef(ALERT_HRL).
+-define(ALERT_HRL, true).
+
 -type id() :: binary().
 -type alertname() :: binary().
 -type description() :: binary().
@@ -19,3 +22,6 @@
     starts_at :: starts_at(), %% ISO 8601
     ends_at :: ends_at()
 }).
+
+
+-endif.
