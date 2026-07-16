@@ -1,4 +1,4 @@
--module(alarm_handler_tests).
+-module(alert_handler_tests).
 
 -include_lib("eunit/include/eunit.hrl").
 
@@ -9,7 +9,7 @@ setup() ->
     application:ensure_all_started(inets),
     Dispatch = cowboy_router:compile([
         {'_', [
-            {"/alerts/:source", alarm_handler, #{}}
+            {"/alerts/:source", alert_handler, #{}}
         ]}
     ]),
     {ok, _} = cowboy:start_clear(
@@ -25,7 +25,7 @@ cleanup(_) ->
     cowboy:stop_listener(test_http_listener),
     ok.
 
-alarm_handler_test_() ->
+alert_handler_test_() ->
     {
         setup,
         fun setup/0,
@@ -46,7 +46,7 @@ prometheus_post() ->
         <<"alerts">> => [
             #{
                 <<"annotations">> => #{
-                    <<"description">> => <<"Test alarm">>,
+                    <<"description">> => <<"Test alert">>,
                     <<"summary">> => <<"Test">>},
                 <<"endsAt">> => <<"0001-01-01T00:00:00Z">>,
                 <<"fingerprint">> => <<"abc123">>,

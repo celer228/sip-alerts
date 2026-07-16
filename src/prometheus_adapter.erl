@@ -1,6 +1,6 @@
 -module(prometheus_adapter).
 -export([normalize/1]).
--include("alert.hrl").
+-include("sipalerts_db.hrl").
 -include("debuger.hrl").
 
 normalize(Webhook) ->

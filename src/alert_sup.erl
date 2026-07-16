@@ -1,9 +1,9 @@
 %%%-------------------------------------------------------------------
-%% @doc alarm_sup top level supervisor.
+%% @doc alert_sup top level supervisor.
 %% @end
 %%%-------------------------------------------------------------------
 
--module(alarm_sup).
+-module(alert_sup).
 
 -behaviour(supervisor).
 
@@ -29,19 +29,19 @@ start_link() ->
 %%                  type => worker(),       % optional
 %%                  modules => modules()}   % optional
 init([]) ->
-    AlarmDb = #{id => alarm_db,
-                  start => {?DUMMY, start_link, [alarm_db]},
+    SipalertsDb = #{id => sipalerts_db,
+                  start => {?DUMMY, start_link, [sipalerts_db]},
                   restart => permanent,
                   shutdown => 5000,
                   type => worker,
-                  modules => [alarm_db]},
+                  modules => [sipalerts_db]},
 
-    AlarmManager = #{id => alarm_manager,
-                  start => {?DUMMY, start_link, [alarm_manager]},
+    AlertManager = #{id => alert_manager,
+                  start => {?DUMMY, start_link, [alert_manager]},
                   restart => permanent,
                   shutdown => 5000,
                   type => worker,
-                  modules => [alarm_manager]},
+                  modules => [alert_manager]},
 
     TimerQueue = #{id => timer_queue,
                   start => {timer_queue, start_link, []},
@@ -50,17 +50,17 @@ init([]) ->
                   type => worker,
                   modules => [timer_queue]},
 
-    AlarmLog = #{id => alarm_log,
-                  start => {?DUMMY, start_link, [alarm_log]},
+    AlertLog = #{id => alert_log,
+                  start => {?DUMMY, start_link, [alert_log]},
                   restart => permanent,
                   shutdown => 5000,
                   type => worker,
-                  modules => [alarm_log]},
+                  modules => [alert_log]},
 
     SupFlags = #{strategy => one_for_one,
                  intensity => 5,
                  period => 10},
-    ChildSpecs = [AlarmDb, AlarmManager, AlarmLog, TimerQueue],
+    ChildSpecs = [SipalertsDb, AlertManager, AlertLog, TimerQueue],
     {ok, {SupFlags, ChildSpecs}}.
 
 %% internal functions

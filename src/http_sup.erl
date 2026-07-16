@@ -28,7 +28,7 @@ start_link() ->
 init([]) ->
     Dispatch = cowboy_router:compile([
         {'_', [
-            {"/alerts/:source", alarm_handler, []}
+            {"/alerts/:source", alert_handler, []}
         ]}
     ]),
 

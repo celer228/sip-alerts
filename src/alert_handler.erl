@@ -1,9 +1,9 @@
--module(alarm_handler).
+-module(alert_handler).
 -behaviour(cowboy_handler).
 
 -export([init/2]).
 
--include("alert.hrl").
+-include("sipalerts_db.hrl").
 -include("debuger.hrl").
 
 init(Req0, State) ->
@@ -38,7 +38,7 @@ init(Req0, State) ->
                     ),
                     {ok, Req, State};
                 {ok, Alert} ->
-                    % alarm_manager:new_alarm(Alert),
+                    % alert_manager:new_alert(Alert),
                     Response = jsx:encode(Webhook),
                     Req = cowboy_req:reply(200,
                         #{<<"content-type">> => <<"application/json">>},

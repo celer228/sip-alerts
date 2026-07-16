@@ -2,12 +2,12 @@
 
 -behaviour(gen_server).
 
--include("timer_queue.hrl").
+-include("sipalerts_db.hrl").
 
 %% Пока используется мок-хранилище.
 %% Позже значение можно переопределить на настоящий Mnesia-модуль.
 -ifndef(DB_MODULE).
--define(DB_MODULE, mock_alarm_db).
+-define(DB_MODULE, mock_alert_db).
 -endif.
 
 %% Публичное API.

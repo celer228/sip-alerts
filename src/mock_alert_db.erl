@@ -1,8 +1,8 @@
--module(mock_alarm_db).
+-module(mock_alert_db).
 
 -behaviour(timer_db).
 
--include("timer_queue.hrl").
+-include("sipalerts_db.hrl").
 
 -export([
     start/0,

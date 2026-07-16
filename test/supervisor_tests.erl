@@ -9,9 +9,9 @@ supervisor_test_() ->
      [
             ?_test(application_started()),
             ?_test(main_sup_children()),
-            ?_test(alarm_sup_children()),
-            ?_test(alarm_manager_restart()),
-            ?_test(alarm_sup_restart()),
+            ?_test(alert_sup_children()),
+            ?_test(alert_manager_restart()),
+            ?_test(alert_sup_restart()),
             ?_test(timer_queue_restart())
      ]}.
 
@@ -32,56 +32,56 @@ main_sup_children() ->
     Ids = lists:sort([Id || {Id,_,_,_} <- Children]),
 
     ?assertEqual(
-        lists:sort([http_sup, alarm_sup, sip_sup]),
+        lists:sort([http_sup, alert_sup, sip_sup]),
         Ids
     ).
 
-alarm_sup_children() ->
+alert_sup_children() ->
 
-    Children = supervisor:which_children(alarm_sup),
+    Children = supervisor:which_children(alert_sup),
 
     Ids = lists:sort([Id || {Id,_,_,_} <- Children]),
 
     ?assertEqual(
         lists:sort([
-            alarm_manager,
-            alarm_db,
-            alarm_log,
+            alert_manager,
+            alert_db,
+            alert_log,
             timer_queue
         ]),
         Ids
     ).
 
-alarm_manager_restart() ->
+alert_manager_restart() ->
 
-    {alarm_manager, OldPid, _, _} =
-        lists:keyfind(alarm_manager, 1,
-            supervisor:which_children(alarm_sup)),
+    {alert_manager, OldPid, _, _} =
+        lists:keyfind(alert_manager, 1,
+            supervisor:which_children(alert_sup)),
 
     exit(OldPid, kill),
 
     timer:sleep(300),
 
-    {alarm_manager, NewPid, _, _} =
-        lists:keyfind(alarm_manager, 1,
-            supervisor:which_children(alarm_sup)),
+    {alert_manager, NewPid, _, _} =
+        lists:keyfind(alert_manager, 1,
+            supervisor:which_children(alert_sup)),
 
     ?assert(is_pid(NewPid)),
     ?assertNotEqual(OldPid, NewPid).
 
-alarm_sup_restart() ->
+alert_sup_restart() ->
 
-    {alarm_manager, Pid, _, _} =
-        lists:keyfind(alarm_manager, 1,
-            supervisor:which_children(alarm_sup)),
+    {alert_manager, Pid, _, _} =
+        lists:keyfind(alert_manager, 1,
+            supervisor:which_children(alert_sup)),
 
-    exit(whereis(alarm_sup), kill),
+    exit(whereis(alert_sup), kill),
 
     timer:sleep(300),
 
-    {alarm_manager, NewPid, _, _} =
-        lists:keyfind(alarm_manager, 1,
-            supervisor:which_children(alarm_sup)),
+    {alert_manager, NewPid, _, _} =
+        lists:keyfind(alert_manager, 1,
+            supervisor:which_children(alert_sup)),
 
     ?assert(is_pid(NewPid)),
     ?assertNotEqual(Pid, NewPid).
@@ -90,7 +90,7 @@ timer_queue_restart() ->
 
     {timer_queue, OldPid, _, _} =
         lists:keyfind(timer_queue, 1,
-            supervisor:which_children(alarm_sup)),
+            supervisor:which_children(alert_sup)),
 
     exit(OldPid, kill),
 
@@ -98,7 +98,7 @@ timer_queue_restart() ->
 
     {timer_queue, NewPid, _, _} =
         lists:keyfind(timer_queue, 1,
-            supervisor:which_children(alarm_sup)),
+            supervisor:which_children(alert_sup)),
 
     ?assert(is_pid(NewPid)),
     ?assertNotEqual(OldPid, NewPid).
