@@ -4,14 +4,14 @@
 
 %%% Поведение для CRUD-операций с подписчиками (один подписчик - один контакт).
 %%%
-%%% Канал связи идентифицируется не атомом, а именем модуля,
-%%% который реализует поведение channel_behaviour.
+%%% Канал связи идентифицируется именем модуля,
+%%% который реализует поведение channel.
 
 -export_type([subscriber_id/0, subscriber/0, channel_module/0, contact_id/0, reason/0]).
 
 -type subscriber_id()  :: binary().        
 -type subscriber()     :: #subscriber{}.   % содержит id и contact
--type channel_module() :: module().        % модуль, реализующий channel_behaviour
+-type channel_module() :: module().        % модуль, реализующий channel
 -type contact_id()     :: term().
 -type contact_data()   :: term().
 -type reason()         :: term().
