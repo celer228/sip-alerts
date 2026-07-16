@@ -9,10 +9,16 @@
             "settings": {
                 "extensions.autoCheckUpdates": false,
 				"extensions.autoUpdate": false,
-                "extensions.verifySignature": false
+                "extensions.verifySignature": false,
+                "[erlang]": {
+                    // форматтер erlang_ls ломает русский текст в комментах
+                    "editor.defaultFormatter": "szTheory.erlang-formatter"
+                },
+                "erlangFormatter.formatter": "erlfmt"
             },
             "extensions": [
-                "erlang-ls.erlang-ls@0.0.32"
+                "erlang-ls.erlang-ls@0.0.32",
+                "szTheory.erlang-formatter@1.0.0"
             ]
         }
     }
