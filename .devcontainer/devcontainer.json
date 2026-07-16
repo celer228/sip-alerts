@@ -13,7 +13,8 @@
                 "[erlang]": {
                     // форматтер erlang_ls ломает русский текст в комментах
                     "editor.defaultFormatter": "szTheory.erlang-formatter"
-                }
+                },
+                "erlangFormatter.formatter": "erlfmt"
             },
             "extensions": [
                 "erlang-ls.erlang-ls@0.0.32",
