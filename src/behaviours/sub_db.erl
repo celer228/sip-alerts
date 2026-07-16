@@ -23,7 +23,7 @@
 %%--------------------------------------------------------------------
 -callback create_subscriber(ChannelMod :: channel_module(),
                             ContactId :: contact_id(),
-                            Data :: map()) ->
+                            ContactData :: contact_data()) ->
     {ok, SubscriberId :: subscriber_id()} | {error, Reason :: reason()}.
 
 %%--------------------------------------------------------------------
