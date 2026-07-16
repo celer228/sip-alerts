@@ -33,12 +33,12 @@ init([]) ->
                   type => supervisor,
                   modules => [http_sup]},
 
-    AlarmSup = #{id => alarm_sup,
-                  start => {alarm_sup, start_link, []},
+    AlertSup = #{id => alert_sup,
+                  start => {alert_sup, start_link, []},
                   restart => permanent,
                   shutdown => infinity,
                   type => supervisor,
-                  modules => [alarm_sup]},
+                  modules => [alert_sup]},
 
     SipSup = #{id => sip_sup,
                   start => {sip_sup, start_link, []},
@@ -50,7 +50,7 @@ init([]) ->
     SupFlags = #{strategy => one_for_one,
                  intensity => 5,
                  period => 10},
-    ChildSpecs = [HttpSup, AlarmSup, SipSup],
+    ChildSpecs = [HttpSup, AlertSup, SipSup],
     {ok, {SupFlags, ChildSpecs}}.
 
 %% internal functions

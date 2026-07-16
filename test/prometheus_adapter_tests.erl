@@ -1,7 +1,7 @@
 -module(prometheus_adapter_tests).
 
 -include_lib("eunit/include/eunit.hrl").
--include("alert.hrl").
+-include("sipalerts_db.hrl").
 
 adapter_test_() ->
      [
@@ -16,7 +16,7 @@ normalize() ->
             #{
                 <<"annotations">> => #{
                     <<"description">> => <<"This is only a test.">>,
-                    <<"summary">> => <<"Test alarm">>
+                    <<"summary">> => <<"Test alert">>
                 },
                 <<"endsAt">> => <<"0001-01-01T00:00:00Z">>,
                 <<"fingerprint">> => <<"abc123">>,

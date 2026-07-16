@@ -1,7 +1,7 @@
 -module(timer_queue_tests).
 
 -include_lib("eunit/include/eunit.hrl").
--include("timer_queue.hrl").
+-include("sipalerts_db.hrl").
 
 %% Callback экспортирован, потому что timer_queue вызывает его через apply/3.
 -export([
@@ -30,7 +30,7 @@ timer_queue_test_() ->
 %% и запускаем приложение с новым timer_queue.
 setup() ->
     _ = application:stop(sipalerts),
-    ok = mock_alarm_db:reset(),
+    ok = mock_alert_db:reset(),
     ok = application:start(sipalerts),
     ok.
 
@@ -38,7 +38,7 @@ setup() ->
 %% и очищаем мок-БД.
 cleanup(_SetupResult) ->
     _ = application:stop(sipalerts),
-    ok = mock_alarm_db:reset(),
+    ok = mock_alert_db:reset(),
     ok.
 
 %% Тестовый callback.
