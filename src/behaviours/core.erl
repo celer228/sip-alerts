@@ -2,14 +2,9 @@
 
 %%% Поведение ядра системы уведомлений.
 %%%
-%%% Модуль ядра (например, alarm_manager) должен реализовать эти
+%%% Модуль ядра (например, alert_manager) должен реализовать эти
 %%% callback-функции, чтобы модули каналов могли фиксировать
 %%% результаты доставки и подтверждения.
-
--export_type([reason/0]).
-
--type reason() :: term().
-
 %%--------------------------------------------------------------------
 %% Callback: mark_delivery/2
 %%
@@ -17,9 +12,9 @@
 %% Вызывается модулем канала после получения подтверждения доставки
 %% (например, 200 OK на SIP MESSAGE).
 %%--------------------------------------------------------------------
--callback mark_delivery(AlertId :: alert_db:alert_id(),
-                        ContactId :: sub_db:contact_id()) ->
-    ok | {error, Reason :: reason()}.
+-callback mark_delivery(AlertId :: sipalerts_db:alert_id(),
+                        ContactId :: sipalerts_db:contact_id()) ->
+    ok | {error, Reason :: sipalerts_db:reason()}.
 
 %%--------------------------------------------------------------------
 %% Callback: mark_confirmation/2
@@ -36,6 +31,6 @@
 %% Если для подписчика нет неподтверждённых алертов, возвращается
 %% {error, no_pending_alerts}.
 %%--------------------------------------------------------------------
--callback mark_confirmation(AlertId :: alert_db:alert_id() | undefined,
-                            ContactId :: sub_db:contact_id()) ->
-    ok | {error, Reason :: reason()}.
+-callback mark_confirmation(AlertId :: sipalerts_db:alert_id() | undefined,
+                            ContactId :: sipalerts_db:contact_id()) ->
+    ok | {error, Reason :: sipalerts_db:reason()}.

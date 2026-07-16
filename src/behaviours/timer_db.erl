@@ -1,22 +1,20 @@
 -module(timer_db).
 
--include("timer_queue.hrl").
-
 %% Контракт модуля хранения таймеров.
--callback insert_timer(#timer{}) ->
+-callback insert_timer(Timer :: sipalerts_db:timer()) ->
     ok
     | {error, term()}.
 
--callback delete_timer(TimerId :: term()) ->
+-callback delete_timer(TimerId :: sipalerts_db:timer_id()) ->
     ok
     | {error, not_found}
     | {error, term()}.
 
--callback get_timer(TimerId :: term()) ->
-    {ok, #timer{}}
+-callback get_timer(TimerId :: sipalerts_db:timer_id()) ->
+    {ok, sipalerts_db:timer()}
     | {error, not_found}
     | {error, term()}.
 
 -callback list_timers() ->
-    {ok, [#timer{}]}
+    {ok, [sipalerts_db:timer()]}
     | {error, term()}.
