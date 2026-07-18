@@ -239,9 +239,13 @@ create_delivery(Alert, SubscriberId) ->
         delivery_id = generate_id_node(),
         alert_id = Alert#alert.id,
         subscriber_id = SubscriberId,
+        channel = case get_subscriber(SubscriberId) of
+            {ok, Subscriber} -> Subscriber#subscriber.channel;
+            {error, _} -> undefined
+        end,
         status = started,
         failed_reason = undefined,
-        started_at = erlang:system_time(second),
+        started_at = calendar:local_time(),
         sent_at = undefined,
         delivered_at = undefined,
         confirmed_at = undefined
@@ -273,15 +277,15 @@ update_delivery_status(DeliveryId, NewStatus) ->
                 UpdatedDelivery = Delivery#delivery{
                     status = NewStatus,
                     sent_at = case NewStatus of
-                        started -> erlang:system_time(second);
+                        started -> calendar:local_time();
                         _ -> Delivery#delivery.sent_at
                     end,
                     delivered_at = case NewStatus of
-                        delivered -> erlang:system_time(second);
+                        delivered -> calendar:local_time();
                         _ -> Delivery#delivery.delivered_at
                     end,
                     confirmed_at = case NewStatus of
-                        confirmed -> erlang:system_time(second);
+                        confirmed -> calendar:local_time();
                         _ -> Delivery#delivery.confirmed_at
                     end
                 },
@@ -439,6 +443,6 @@ generate_id() ->
 
 -spec generate_id_node() -> binary().
 generate_id_node() ->
-    Unique = erlang:unique_integer([positive, monotonic]),
+    Unique = base64:encode(crypto:strong_rand_bytes(16)),
     Node = atom_to_binary(node(), utf8),
-    <<Node/binary, "-", (integer_to_binary(Unique))/binary>>.
+    <<Node/binary, "-", Unique/binary>>.
