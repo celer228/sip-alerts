@@ -60,7 +60,7 @@ handle_registration(ContactId) ->
     case SubDb:get_subscriber_by_contact(sip_channel, ContactId) of
         {ok, SubscriberId} ->
             case SubDb:update_contact_data(
-                SubscriberId,
+                ContactId,
                 sip_channel,
                 ContactData
             ) of
