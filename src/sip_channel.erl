@@ -46,8 +46,8 @@ send_message(AlertId, AlertMsg, ContactId) when is_binary(ContactId) ->
             {ok, Code, _Meta} ->
                 {error, {sip_response, Code}};
 
-            {error, Reason} ->
-                {error, {sip_error, Reason}};
+            {error, SipReason} ->
+                {error, {sip_error, SipReason}};
 
             {async, _Handle} ->
                 ok;
@@ -56,8 +56,8 @@ send_message(AlertId, AlertMsg, ContactId) when is_binary(ContactId) ->
                 {error, {unexpected_sip_result, Other}}
         end
     catch
-        Class:Reason ->
-            {error, {sip_exception, Class, Reason}}
+        Class:ExceptionReason ->
+            {error, {sip_exception, Class, ExceptionReason}}
     end;
 
 send_message(_AlertId, _AlertMsg, ContactId) ->

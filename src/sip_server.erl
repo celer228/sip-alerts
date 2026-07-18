@@ -6,7 +6,8 @@
     sip_register/2,
     sip_invite/2,
     sip_message/2,
-    sip_ack/2
+    sip_ack/2,
+    sip_registrar_store/2
 ]).
 
 sip_register(Req, _Call) ->
@@ -38,6 +39,48 @@ sip_ack(_Req, _Call) ->
 
 
 %%--------------------------------------------------------------------
+%% NkSIP registrar storage
+%%
+%% SIP REGISTER используется только для обнаружения текущего контакта.
+%% Эти данные хранятся в оперативной памяти и не создают подписчика
+%% в основной базе данных.
+%%--------------------------------------------------------------------
+
+sip_registrar_store(SrvId, {get, AOR}) ->
+    nklib_store:get(
+        {nksip_registrar, SrvId, AOR},
+        []
+    );
+
+sip_registrar_store(SrvId, {put, AOR, Contacts, TTL}) ->
+    nklib_store:put(
+        {nksip_registrar, SrvId, AOR},
+        Contacts,
+        [{ttl, TTL}]
+    );
+
+sip_registrar_store(SrvId, {del, AOR}) ->
+    nklib_store:del(
+        {nksip_registrar, SrvId, AOR}
+    );
+
+sip_registrar_store(SrvId, del_all) ->
+    FoldFun =
+        fun(Key, _Value, Acc) ->
+            case Key of
+                {nksip_registrar, SrvId, AOR} ->
+                    nklib_store:del(
+                        {nksip_registrar, SrvId, AOR}
+                    );
+                _ ->
+                    Acc
+            end
+        end,
+
+    nklib_store:fold(FoldFun, none).
+
+
+%%--------------------------------------------------------------------
 %% Internal functions
 %%--------------------------------------------------------------------
 
@@ -58,7 +101,7 @@ handle_registration(ContactId) ->
     ContactData = #{registered_via => invite},
 
     case SubDb:get_subscriber_by_contact(sip_channel, ContactId) of
-        {ok, SubscriberId} ->
+        {ok, _SubscriberId} ->
             case SubDb:update_contact_data(
                 ContactId,
                 sip_channel,
