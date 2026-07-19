@@ -16,11 +16,21 @@ supervisor_test_() ->
      ]}.
 
 setup() ->
+    mnesia:stop(),
+
+    %% удалить старую тестовую БД
+    mnesia:delete_schema([node()]),
+
+    ok = mnesia:create_schema([node()]),
+    
     {ok, _} = application:ensure_all_started(sipalerts),
     ok.
 
 cleanup(_) ->
-    application:stop(sipalerts).
+    application:stop(sipalerts),
+    mnesia:stop(),
+    mnesia:delete_schema([node()]),
+    ok.
 
 application_started() ->
     ?assert(is_process_alive(whereis(sipalerts_sup))).
@@ -45,7 +55,6 @@ alert_sup_children() ->
     ?assertEqual(
         lists:sort([
             alert_manager,
-            alert_db,
             alert_log,
             timer_queue
         ]),

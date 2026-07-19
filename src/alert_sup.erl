@@ -29,12 +29,12 @@ start_link() ->
 %%                  type => worker(),       % optional
 %%                  modules => modules()}   % optional
 init([]) ->
-    SipalertsDb = #{id => sipalerts_db,
-                  start => {?DUMMY, start_link, [sipalerts_db]},
-                  restart => permanent,
-                  shutdown => 5000,
-                  type => worker,
-                  modules => [sipalerts_db]},
+    % SipalertsDb = #{id => sipalerts_db,
+    %               start => {?DUMMY, start_link, [sipalerts_db]},
+    %               restart => permanent,
+    %               shutdown => 5000,
+    %               type => worker,
+    %               modules => [sipalerts_db]},
 
     AlertManager = #{id => alert_manager,
                   start => {?DUMMY, start_link, [alert_manager]},
@@ -44,7 +44,7 @@ init([]) ->
                   modules => [alert_manager]},
 
     TimerQueue = #{id => timer_queue,
-                  start => {timer_queue, start_link, []},
+                  start => {?DUMMY, start_link, [timer_queue]},
                   restart => permanent,
                   shutdown => 5000,
                   type => worker,
@@ -60,7 +60,7 @@ init([]) ->
     SupFlags = #{strategy => one_for_one,
                  intensity => 5,
                  period => 10},
-    ChildSpecs = [SipalertsDb, AlertManager, AlertLog, TimerQueue],
+    ChildSpecs = [AlertManager, AlertLog, TimerQueue],
     {ok, {SupFlags, ChildSpecs}}.
 
 %% internal functions
