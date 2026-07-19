@@ -21,4 +21,4 @@ echo "===> Starting application..."
 
 # Добавляем эту строку, когда нужно открыть приложение фоном (например для тестов)
 # А так запуск rebar3 shell --name sipalerts@127.0.0.1
-exec rebar3 shell --name sipalerts@127.0.0.1
+# exec rebar3 shell --name sipalerts@127.0.0.1
