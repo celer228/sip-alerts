@@ -8,7 +8,9 @@
     stdlib,
     nksip
    ]},
-  {env,[]},
+  {env,[
+    {core_module, sipalerts_db}
+  ]},
   {modules, []},
 
   {links, []}
