@@ -7,7 +7,8 @@
     {ok, Delivery :: sipalerts_db:delivery()} | {error, Reason :: sipalerts_db:reason()}.
 
 -callback update_delivery_status(DeliveryId :: sipalerts_db:delivery_id(),
-                                 NewStatus :: sipalerts_db:delivery_status()) ->
+                                 NewStatus :: sipalerts_db:delivery_status(),
+                                 TimerId :: timer_queue:timer_id()) ->
     ok | {error, Reason :: sipalerts_db:reason()}.
 
 -callback delete_delivery(DeliveryId :: sipalerts_db:delivery_id()) ->
@@ -15,3 +16,6 @@
 
 -callback list_deliveries() ->
     [sipalerts_db:delivery()] | {error, Reason :: sipalerts_db:reason()}.
+
+-callback get_delivery_by_key(AlertId :: sipalerts_db:alert_id(), SubscriberId :: sipalerts_db:subscriber_id()) ->
+    {ok, Delivery :: sipalerts_db:delivery()} | {error, Reason :: sipalerts_db:reason()}.

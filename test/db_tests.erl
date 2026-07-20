@@ -149,7 +149,7 @@ delivery_status_test_() ->
 
             {ok, DeliveryId} = sipalerts_db:create_delivery(Alert, SubId),
 
-            ok = sipalerts_db:update_delivery_status(DeliveryId, delivered),
+            ok = sipalerts_db:update_delivery_status(DeliveryId, delivered, unchanged),
 
             {ok, Delivery} = sipalerts_db:get_delivery(DeliveryId),
 

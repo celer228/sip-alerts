@@ -67,9 +67,10 @@
 -export([
     create_delivery/2,
     get_delivery/1,
-    update_delivery_status/2,
+    update_delivery_status/3,
     delete_delivery/1,
-    list_deliveries/0
+    list_deliveries/0,
+    get_delivery_by_key/2
 ]).
 
 -behaviour(timer_db).
@@ -228,7 +229,7 @@ init_delivery() ->
     case mnesia:create_table(delivery, [{attributes, record_info(fields, delivery)},
                                 {disc_copies, [node()]},
                                 {type, set}]) of
-        {atomic, ok} -> ok;
+        {atomic, ok} -> mnesia:add_table_index(delivery, delivery_key), ok;
         {aborted, {already_exists, delivery}} -> ok;
         Error -> Error
     end.
@@ -239,10 +240,12 @@ create_delivery(Alert, SubscriberId) ->
         delivery_id = generate_id_node(),
         alert_id = Alert#alert.id,
         subscriber_id = SubscriberId,
+        delivery_key = {Alert#alert.id, SubscriberId},
         channel = case get_subscriber(SubscriberId) of
             {ok, Subscriber} -> Subscriber#subscriber.channel;
             {error, _} -> undefined
         end,
+        timer_id = undefined,
         status = started,
         failed_reason = undefined,
         started_at = calendar:local_time(),
@@ -269,12 +272,13 @@ get_delivery(DeliveryId) ->
         {aborted, Reason} -> {error, Reason}
     end.
 
--spec update_delivery_status(DeliveryId :: delivery_id(), NewStatus :: delivery_status()) -> ok | {error, not_found} | {error, reason()}.
-update_delivery_status(DeliveryId, NewStatus) ->
+-spec update_delivery_status(DeliveryId :: delivery_id(), NewStatus :: delivery_status(), TimerId :: timer_id()) -> ok | {error, not_found} | {error, reason()}.
+update_delivery_status(DeliveryId, NewStatus, TimerId) ->
     UpdateDel = fun() ->
         case mnesia:read(delivery, DeliveryId) of
             [Delivery] ->
                 UpdatedDelivery = Delivery#delivery{
+                    timer_id = TimerId,
                     status = NewStatus,
                     sent_at = case NewStatus of
                         started -> calendar:local_time();
@@ -318,6 +322,20 @@ list_deliveries() ->
     end,
     case mnesia:transaction(ListDels) of
         {atomic, Deliveries} -> Deliveries;
+        {aborted, Reason} -> {error, Reason}
+    end.
+
+-spec get_delivery_by_key(AlertId :: alert_id(), SubscriberId :: subscriber_id()) -> {ok, delivery()} | {error, not_found} | {error, reason()}.
+get_delivery_by_key(AlertId, SubscriberId) ->
+    GetDel = fun() ->
+        case mnesia:index_read(delivery, {AlertId, SubscriberId}, #delivery.delivery_key) of
+            [Delivery] -> {ok, Delivery};
+            [] -> {error, not_found}
+        end
+    end,
+    case mnesia:transaction(GetDel) of
+        {atomic, {ok, Delivery}} -> {ok, Delivery};
+        {atomic, {error, not_found}} -> {error, not_found};
         {aborted, Reason} -> {error, Reason}
     end.
 
