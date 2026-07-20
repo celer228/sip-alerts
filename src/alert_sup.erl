@@ -30,11 +30,11 @@ start_link() ->
 %%                  modules => modules()}   % optional
 init([]) ->
     % SipalertsDb = #{id => sipalerts_db,
-    %               start => {?DUMMY, start_link, [sipalerts_db]},
-    %               restart => permanent,
-    %               shutdown => 5000,
-    %               type => worker,
-    %               modules => [sipalerts_db]},
+    %                start => {?DUMMY, start_link, [sipalerts_db]},
+    %                restart => permanent,
+    %                shutdown => 5000,
+    %                type => worker,
+    %                modules => [sipalerts_db]},
 
     AlertManager = #{id => alert_manager,
                   start => {?DUMMY, start_link, [alert_manager]},
@@ -53,7 +53,7 @@ init([]) ->
                  },
 
     AlertLog = #{id => alert_log,
-                  start => {?DUMMY, start_link, [alert_log]},
+                  start => {alert_log, start_link, []},
                   restart => permanent,
                   shutdown => 5000,
                   type => worker,
