@@ -102,7 +102,7 @@ cancel_case() ->
 
 %% Отмена неизвестного таймера возвращает ошибку.
 cancel_unknown_case() ->
-    UnknownId = make_ref(),
+    UnknownId = <<"unknown_timer_id">>,
 
     ?assertEqual(
         {error, not_found},
