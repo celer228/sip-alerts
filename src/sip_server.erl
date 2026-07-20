@@ -154,7 +154,7 @@ handle_unregistration(ContactId) ->
 handle_confirmation(ContactId) ->
     Core = core_module(),
 
-    case Core:mark_confirmation(undefined, ContactId) of
+    case Core:mark_confirmation(undefined, ContactId, ?MODULE) of
         ok ->
             {reply, ok};
 

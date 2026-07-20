@@ -74,7 +74,7 @@ build_uri(ContactId) ->
 mark_delivery(AlertId, ContactId) ->
     Core = core_module(),
 
-    try Core:mark_delivery(AlertId, ContactId) of
+    try Core:mark_delivery(AlertId, ContactId, ?MODULE) of
         ok ->
             ok;
 
