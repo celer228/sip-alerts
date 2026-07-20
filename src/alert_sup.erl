@@ -32,11 +32,11 @@ start_link() ->
 %%                  modules => modules()}   % optional
 init([]) ->
     % SipalertsDb = #{id => sipalerts_db,
-    %               start => {?DUMMY, start_link, [sipalerts_db]},
-    %               restart => permanent,
-    %               shutdown => 5000,
-    %               type => worker,
-    %               modules => [sipalerts_db]},
+    %                start => {?DUMMY, start_link, [sipalerts_db]},
+    %                restart => permanent,
+    %                shutdown => 5000,
+    %                type => worker,
+    %                modules => [sipalerts_db]},
 
     AlertAcceptorWPoolOpts = [
         {workers, 10},
@@ -75,14 +75,12 @@ init([]) ->
         modules => [timer_queue]
     },
 
-    AlertLog = #{
-        id => alert_log,
-        start => {?DUMMY, start_link, [alert_log]},
-        restart => permanent,
-        shutdown => 5000,
-        type => worker,
-        modules => [alert_log]
-    },
+    AlertLog = #{id => alert_log,
+                  start => {alert_log, start_link, []},
+                  restart => permanent,
+                  shutdown => 5000,
+                  type => worker,
+                  modules => [alert_log]},
 
     SupFlags = #{
         strategy => one_for_one,
