@@ -7,13 +7,79 @@
     sip_invite/2,
     sip_message/2,
     sip_ack/2,
-    sip_registrar_store/2
+    sip_registrar_store/2,
+    sip_get_user_pass/4,
+    sip_authorize/3,
+    sip_route/5
 ]).
 
+%% Called to check the user password for a realm
+sip_get_user_pass(User, _Realm, _Req, _Call) ->
+    io:format("sip_server: sip_get_user_pass(~p)~n", [User]),
+    find_pass_userauth(User).
+
+%% Called for every incoming request to be authorized or not
+sip_authorize(AuthList, Req, _Call) ->
+    io:format("sip_server: sip_authorize()~n"),
+    Method = nksip_sipmsg:get_meta(method, Req),
+    io:format("Method = ~p~n", [Method]),
+    FromUser = nksip_sipmsg:get_meta(from_user, Req),
+    io:format("FromUser = ~p~n", [FromUser]),
+    FoundedUser = find_user_no_auth(FromUser),
+    io:format("sip_server: trying to auth user ~p~n", [FoundedUser]),
+    case lists:member(dialog, AuthList) orelse lists:member(register, AuthList) of
+        true ->
+            io:format("Authorized (dialog or register)~n", []),
+            ok;
+        false ->
+            case proplists:get_value({digest, <<"nksip">>}, AuthList) of
+                true ->
+                    io:format("Authorized (digest ok)~n", []),
+                    ok;
+                false ->
+                    io:format("Forbidden (digest failed)~n", []),
+                    forbidden;
+                undefined ->
+                    io:format("Challenge (no digest yet)~n", []),
+                    {proxy_authenticate, <<"nksip">>}
+            end
+        end.
+
+
+%% This function is called by NkSIP for every new request, to che5ck if it must be proxied, processed locally or replied immediately
+sip_route(_Scheme, <<>>, <<"localhost">>, _Req, _Call) ->
+    % we want to act as an endpoint or B2BUA
+    io:format("sip_server: sip_route(User = <<>>)~n"),
+    process;
+
+sip_route(_Scheme, User, _Domain, Req, _Call) ->
+    io:format("sip_server: sip_route(User = ~p)~n", [User]),
+    case nksip_request:is_local_ruri(Req) of
+        true ->
+            process;
+        false ->
+            proxy
+    end.
+
 sip_register(Req, _Call) ->
-    {reply, nksip_registrar:request(Req)}.
+    {ok, [{from_scheme, FromScheme}, {from_user, FromUser}, {from_domain, FromDomain}]} =
+        nksip_request:get_metas([from_scheme, from_user, from_domain], Req),
+    {ok, [{to_scheme, ToScheme}, {to_user, ToUser}, {to_domain, ToDomain}]} =
+        nksip_request:get_metas([to_scheme, to_user, to_domain], Req),
+
+    io:format("sip_server: sip_register(From ~p)~n", [FromUser]),
+    case {FromScheme, FromUser, FromDomain} of
+        {ToScheme, ToUser, ToDomain} ->
+            io:format("REGISTER OK: ~p~n", [{ToUser, ToDomain}]),
+            {reply, nksip_registrar:request(Req)};
+        _ ->
+            {reply, forbidden}
+    end.
 
 sip_invite(Req, _Call) ->
+    {ok, [{scheme, _Scheme}, {from_user, FromUser}, {user, User}, {domain, _Domain}]} =
+        nksip_request:get_metas([scheme, from_user, user, domain], Req),
+    io:format("sip_server: sip_invite(From ~p, User ~p)~n", [FromUser, User]),
     case get_invite_data(Req) of
         {ok, <<"4800">>, ContactId} ->
             handle_registration(ContactId);
@@ -47,31 +113,20 @@ sip_ack(_Req, _Call) ->
 %%--------------------------------------------------------------------
 
 sip_registrar_store(SrvId, {get, AOR}) ->
-    nklib_store:get(
-        {nksip_registrar, SrvId, AOR},
-        []
-    );
+    nklib_store:get({nksip_registrar, SrvId, AOR}, []);
 
 sip_registrar_store(SrvId, {put, AOR, Contacts, TTL}) ->
-    nklib_store:put(
-        {nksip_registrar, SrvId, AOR},
-        Contacts,
-        [{ttl, TTL}]
-    );
+    nklib_store:put({nksip_registrar, SrvId, AOR}, Contacts, [{ttl, TTL}]);
 
 sip_registrar_store(SrvId, {del, AOR}) ->
-    nklib_store:del(
-        {nksip_registrar, SrvId, AOR}
-    );
+    nklib_store:del({nksip_registrar, SrvId, AOR});
 
 sip_registrar_store(SrvId, del_all) ->
     FoldFun =
         fun(Key, _Value, Acc) ->
             case Key of
                 {nksip_registrar, SrvId, AOR} ->
-                    nklib_store:del(
-                        {nksip_registrar, SrvId, AOR}
-                    );
+                    nklib_store:del({nksip_registrar, SrvId, AOR});
                 _ ->
                     Acc
             end
@@ -97,56 +152,45 @@ get_invite_data(Req) ->
     end.
 
 handle_registration(ContactId) ->
-    SubDb = sub_db_module(),
     ContactData = #{registered_via => invite},
 
-    case SubDb:get_subscriber_by_contact(sip_channel, ContactId) of
+    case sipalerts_db:get_subscriber_by_contact(sip_channel, ContactId) of
         {ok, _SubscriberId} ->
-            case SubDb:update_contact_data(
-                ContactId,
-                sip_channel,
-                ContactData
-            ) of
+            case sipalerts_db:update_contact_data(ContactId, sip_channel, ContactData) of
                 ok ->
-                    {reply, ok};
-
-                {error, _Reason} ->
-                    {reply, internal_error}
+                    io:format("Update sub~n"),
+                    {reply, {487, []}};
+                {error, Reason} ->
+                    io:format("Error = ~p~n", [Reason]),
+                    {reply, forbidden}
             end;
-
         {error, not_found} ->
-            case SubDb:create_subscriber(
-                sip_channel,
-                ContactId,
-                ContactData
-            ) of
-                {ok, _SubscriberId} ->
-                    {reply, ok};
-
-                {error, _Reason} ->
-                    {reply, internal_error}
+            case sipalerts_db:create_subscriber(sip_channel, ContactId, ContactData) of
+                {ok, SubscriberId} ->
+                    io:format("New sub = ~p~n", [SubscriberId]),
+                    {reply, {487, []}};
+                {error, Reason} ->
+                    io:format("Error = ~p~n", [Reason]),
+                    {reply, forbidden}
             end;
-
-        {error, _Reason} ->
-            {reply, internal_error}
+        {error, Reason} ->
+            io:format("Error = ~p~n", [Reason]),
+            {reply, forbidden}
     end.
 
 handle_unregistration(ContactId) ->
-    SubDb = sub_db_module(),
-
-    case SubDb:get_subscriber_by_contact(sip_channel, ContactId) of
+    case sipalerts_db:get_subscriber_by_contact(sip_channel, ContactId) of
         {ok, SubscriberId} ->
-            case SubDb:delete_subscriber(SubscriberId) of
+            case sipalerts_db:delete_subscriber(SubscriberId) of
                 ok ->
+                    io:format("Delete sub~n"),
                     {reply, ok};
-
                 {error, _Reason} ->
                     {reply, internal_error}
             end;
 
         {error, not_found} ->
             {reply, ok};
-
         {error, _Reason} ->
             {reply, internal_error}
     end.
@@ -165,8 +209,44 @@ handle_confirmation(ContactId) ->
             {reply, internal_error}
     end.
 
-sub_db_module() ->
-    application:get_env(sipalerts, sub_db_module, sub_db).
+% sub_db_module() ->
+%     application:get_env(sipalerts, sub_db_module, sub_db).
 
 core_module() ->
     application:get_env(sipalerts, core_module, alert_manager).
+
+%% Private functions
+
+get_users_from_json() ->
+    {ok, Binary} = file:read_file("priv/users.json"),
+    Output = jsx:decode(Binary),
+    #{<<"users">> := Users} = Output,
+    Users.
+
+find_user_no_auth(UserFrom) ->
+    Users = get_users_from_json(),
+    Filter = fun(UserMap) ->
+        Auth = maps:get(<<"userAuth">>, UserMap),
+        UserPhone = maps:get(<<"userPhone">>, UserMap),
+        AuthType = maps:get(<<"authType">>, Auth),
+        AuthType == <<"no">> andalso UserPhone == UserFrom
+    end,
+    lists:filter(Filter, Users).
+
+find_pass_userauth(User) ->
+    Users = get_users_from_json(),
+    Filter = fun(UserMap) ->
+        Auth = maps:get(<<"userAuth">>, UserMap),
+        Login = maps:get(<<"userLogin">>, Auth),
+        AuthType = maps:get(<<"authType">>, Auth),
+        AuthType == <<"yes">> andalso Login == User
+    end,
+    UserList = lists:filter(Filter, Users),
+    case UserList of
+        [] -> <<>>;
+        _ ->
+            [UserMap] = UserList,
+            #{<<"userAuth">> := UserAuth} = UserMap,
+            #{<<"userPass">> := UserPass} = UserAuth,
+            UserPass
+    end.

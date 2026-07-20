@@ -16,7 +16,7 @@ init([]) ->
     ChildSpecs = [
         %% SIP-сервер для приема звонков (ping)
         nksip:get_sup_spec(sip_server, #{
-            sip_local_host => "localhost",
+            sip_local_host => "0.0.0.0",
             plugins => [nksip_registrar],
             sip_listen => "sip:all:5060"
         })
