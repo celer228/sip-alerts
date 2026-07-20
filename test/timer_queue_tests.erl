@@ -26,19 +26,30 @@ timer_queue_test_() ->
         ]
     }.
 
-%% Перед каждым тестом очищаем мок-БД
-%% и запускаем приложение с новым timer_queue.
+%% Перед каждым тестом создаём новую схему Mnesia
+%% и запускаем alert_sup с timer_queue.
 setup() ->
-    _ = application:stop(sipalerts),
-    ok = mock_alert_db:reset(),
-    ok = application:start(sipalerts),
-    ok.
+    _ = mnesia:stop(),
+    _ = mnesia:delete_schema([node()]),
 
-%% После каждого теста останавливаем приложение
-%% и очищаем мок-БД.
-cleanup(_SetupResult) ->
-    _ = application:stop(sipalerts),
-    ok = mock_alert_db:reset(),
+    ok = mnesia:create_schema([node()]),
+    ok = mnesia:start(),
+    ok = sipalerts_db:init(),
+
+    {ok, AlertSupPid} = alert_sup:start_link(),
+    unlink(AlertSupPid),
+    AlertSupPid.
+
+cleanup(AlertSupPid) ->
+    case is_process_alive(AlertSupPid) of
+        true ->
+            exit(AlertSupPid, shutdown);
+        false ->
+            ok
+    end,
+
+    _ = mnesia:stop(),
+    _ = mnesia:delete_schema([node()]),
     ok.
 
 %% Тестовый callback.
@@ -91,7 +102,7 @@ cancel_case() ->
 
 %% Отмена неизвестного таймера возвращает ошибку.
 cancel_unknown_case() ->
-    UnknownId = make_ref(),
+    UnknownId = <<"unknown_timer_id">>,
 
     ?assertEqual(
         {error, not_found},
@@ -185,7 +196,7 @@ expired_timer_removed_case() ->
     ?assertNot(maps:is_key(TimerId, TimerRefs)).
 
 %% После остановки и повторного запуска таймер
-%% восстанавливается из мок-БД.
+%% восстанавливается из Mnesia.
 restore_after_restart_case() ->
     {ok, TimerId} =
         timer_queue:add(
