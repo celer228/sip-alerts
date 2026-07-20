@@ -20,14 +20,12 @@ start_link() ->
     supervisor:start_link({local, ?SERVER}, ?MODULE, []).
 
 init([]) ->
-    AlertDb = #{
-        id => alert_db,
-        start => {?DUMMY, start_link, [alert_db]},
-        restart => permanent,
-        shutdown => 5000,
-        type => worker,
-        modules => [alert_db]
-    },
+    % SipalertsDb = #{id => sipalerts_db,
+    %               start => {?DUMMY, start_link, [sipalerts_db]},
+    %               restart => permanent,
+    %               shutdown => 5000,
+    %               type => worker,
+    %               modules => [sipalerts_db]},
 
     AlertManager = #{
         id => alert_manager,
@@ -38,14 +36,12 @@ init([]) ->
         modules => [alert_manager]
     },
 
-    TimerQueue = #{
-        id => timer_queue,
-        start => {timer_queue, start_link, []},
-        restart => permanent,
-        shutdown => 5000,
-        type => worker,
-        modules => [timer_queue]
-    },
+    TimerQueue = #{id => timer_queue,
+                  start => {?DUMMY, start_link, [timer_queue]},
+                  restart => permanent,
+                  shutdown => 5000,
+                  type => worker,
+                  modules => [timer_queue]},
 
     AlertLog = #{
         id => alert_log,
@@ -56,13 +52,10 @@ init([]) ->
         modules => [alert_log]
     },
 
-    SupFlags = #{
-        strategy => one_for_one,
-        intensity => 5,
-        period => 10
-    },
-
-    ChildSpecs = [AlertDb, AlertManager, AlertLog, TimerQueue],
+    SupFlags = #{strategy => one_for_one,
+                 intensity => 5,
+                 period => 10},
+    ChildSpecs = [AlertManager, AlertLog, TimerQueue],
     {ok, {SupFlags, ChildSpecs}}.
 
 %% internal functions

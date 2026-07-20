@@ -24,13 +24,15 @@
     delivery_id :: sipalerts_db:delivery_id(),
     alert_id :: sipalerts_db:alert_id(),
     subscriber_id :: sipalerts_db:subscriber_id(),
+    delivery_key :: {AlertId :: sipalerts_db:alert_id(), SubscriberId :: sipalerts_db:subscriber_id()},
     channel :: sipalerts_db:channel_module(),
+    timer_id :: timer_queue:timer_id() | undefined | unchanged,  % Идентификатор таймера в очереди таймеров (если статус = started)
     status :: sipalerts_db:delivery_status(),
     failed_reason :: sipalerts_db:reason() | undefined,
-    started_at :: calendar:datetime_utc(),
-    sent_at :: calendar:datetime_utc() | undefined,
-    delivered_at :: calendar:datetime_utc() | undefined,
-    confirmed_at :: calendar:datetime_utc() | undefined
+    started_at :: calendar:datetime_utc(),                % Время начала доставки уведомления
+    sent_at :: calendar:datetime_utc() | undefined,       % Время отправки уведомления (если статус = started)
+    delivered_at :: calendar:datetime_utc() | undefined,  % Время подтверждения доставки (если статус = delivered)
+    confirmed_at :: calendar:datetime_utc() | undefined   % Время подтверждения получения уведомления (если статус = confirmed)
 }).
 
 -record(timer, {

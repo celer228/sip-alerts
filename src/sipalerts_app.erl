@@ -10,6 +10,8 @@
 -export([start/2, stop/1]).
 
 start(_StartType, _StartArgs) ->
+    mnesia:start(),
+    sipalerts_db:init(),
     sipalerts_sup:start_link().
 
 stop(_State) ->

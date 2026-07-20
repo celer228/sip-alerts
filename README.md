@@ -6,6 +6,7 @@
 
 1. Открыть в VS Code папку проекта
 2. Открыть Command Palette (F1), выбрать **Dev Containers: Reopen in Container**
+> После интеграции mnesia, нужно запукать приложение через скрипт в папке tools + командой rebar3 shell -name sipalerts@127.0.0.1
 3. Для проверки работы Prometheus и AlertManager в браузере откройте localhost по портам 9090 и 9093
 4. Для проверки отсылки тестового алерта отправьте GET на http://localhost:9191/\_\_last_request\_\_
 5. Для проверки дерева супервизоров можете воспользоваться eunit и вручную с помощью dummy_server:crash(Название модуля/супервизора).
@@ -15,4 +16,5 @@
     * в выводе dialyzer могут быть ошибки от используемых модулей, но при работе над проектом они не помешают
     * далее erlang_ls будет автоматически анализировать открытые файлы и выводить ошибки dialyzer в problems
 8. Рекомендую поставить в VS Code расширение [Error Lens](https://marketplace.visualstudio.com/items?itemName=usernamehw.errorlens) для удобного вывода ошибок прямо в проблемные строки
-9. Profit!
+9. Для тестирования БД нужно использовать скрипт из папки tools + rebar3 eunit
+10. Profit!
