@@ -4,10 +4,9 @@
 
 -include("sipalerts_db.hrl").
 
-%% Пока используется мок-хранилище.
-%% Позже значение можно переопределить на настоящий Mnesia-модуль.
+%% Модуль работы с хранилищем таймеров.
 -ifndef(DB_MODULE).
--define(DB_MODULE, mock_alert_db).
+-define(DB_MODULE, sipalerts_db).
 -endif.
 
 %% Публичное API.
@@ -29,7 +28,7 @@
 ]).
 
 %% Идентификатор таймера.
--type timer_id() :: reference().
+-type timer_id() :: binary().
 
 %% Адрес процесса, которому можно отправить сообщение.
 -type process_destination() ::
@@ -122,7 +121,7 @@ handle_call(
 ) when is_integer(DelayMs), DelayMs >= 0 ->
     case valid_destination(Destination) of
         true ->
-            TimerId = make_ref(),
+            TimerId = generate_timer_id(),
             DeadlineMs = current_time_ms() + DelayMs,
 
             Timer = #timer{
@@ -365,6 +364,11 @@ notify({send, Destination}, TimerId, Message) ->
     Destination ! {timer_expired, TimerId, Message};
 notify({callback, Module, Function}, TimerId, Message) ->
     apply(Module, Function, [TimerId, Message]).
+
+%% Генерация устойчивого идентификатора таймера.
+-spec generate_timer_id() -> timer_id().
+generate_timer_id() ->
+    base64:encode(crypto:strong_rand_bytes(16)).
 
 %% Текущее системное время в миллисекундах.
 -spec current_time_ms() -> integer().

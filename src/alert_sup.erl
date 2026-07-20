@@ -43,12 +43,14 @@ init([]) ->
                   type => worker,
                   modules => [alert_manager]},
 
-    TimerQueue = #{id => timer_queue,
-                  start => {?DUMMY, start_link, [timer_queue]},
+    TimerQueue = #{
+                  id => timer_queue,
+                  start => {timer_queue, start_link, []},
                   restart => permanent,
                   shutdown => 5000,
                   type => worker,
-                  modules => [timer_queue]},
+                  modules => [timer_queue]
+                 },
 
     AlertLog = #{id => alert_log,
                   start => {?DUMMY, start_link, [alert_log]},
