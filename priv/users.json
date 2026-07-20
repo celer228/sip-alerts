@@ -1,0 +1,31 @@
+{
+    "users": [
+        {"userID" : "0",
+         "userName" : "ivanov",
+         "userPhone" : "3003",
+         "userAuth": {
+            "authType" : "yes",
+            "userLogin" : "3003",
+            "userPass": "test"
+         }
+        },
+        {"userID" : "1",
+         "userName" : "petrov",
+         "userPhone" : "3004",
+         "userAuth": {
+            "authType" : "yes",
+            "userLogin" : "3004",
+            "userPass": "test"
+         }
+        },
+        {"userID" : "2",
+         "userName" : "sidorov",
+         "userPhone" : "3005",
+         "userAuth": {
+            "authType" : "yes",
+            "userLogin" : "3005",
+            "userPass": "test"
+         }
+        }
+    ]
+}
