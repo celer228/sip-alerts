@@ -11,6 +11,7 @@
 
 start(_StartType, _StartArgs) ->
     mnesia:start(),
+    wpool:start(),
     sipalerts_db:init(),
     sipalerts_sup:start_link().
 
