@@ -10,6 +10,8 @@ services:
     command: sleep infinity   # чтобы контейнер не завершался после сборки
     ports:
       - "8080:8080"
+      - "5062:5060/tcp"
+      - "5062:5060/udp"
     networks:
       - alert-net
 
