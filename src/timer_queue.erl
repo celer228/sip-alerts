@@ -4,10 +4,9 @@
 
 -include("sipalerts_db.hrl").
 
-%% Пока используется мок-хранилище.
-%% Позже значение можно переопределить на настоящий Mnesia-модуль.
+%% Модуль работы с хранилищем таймеров.
 -ifndef(DB_MODULE).
--define(DB_MODULE, mock_alert_db).
+-define(DB_MODULE, sipalerts_db).
 -endif.
 
 %% Публичное API.
