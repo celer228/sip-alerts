@@ -2,9 +2,9 @@
 -define(ALERT_MANAGER_HRL_, true).
 
 % 30 сек
--define(DELIVERY_TIMEOUT, 60000).
+-define(DELIVERY_TIMEOUT, 18000).
 % 60 сек
--define(CONFIRMATION_TIMEOUT, 30000).
+-define(CONFIRMATION_TIMEOUT, 18000).
 
 -record(mgr_deps, {
     db :: module(),

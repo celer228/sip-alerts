@@ -4,6 +4,8 @@
 
 -export([batch_send/3]).
 
+-include("debuger.hrl").
+
 -spec batch_send(
     sipalerts_db:alert_id(),
     sipalerts_db:alert_text(),
@@ -38,6 +40,7 @@ send_message(AlertId, AlertMsg, ContactId) when is_binary(ContactId) ->
 
     %% nksip_uac:message(alertsender, "sip:3003@localhost:5060", [{expires, 10}, {content_type, <<"text/plain">>}, {body, <<"Hello\n">>}]).
 
+    ?DEBUGER("AlertId ~p, msg: ~p", [AlertId, AlertMsg]),
     try
         case nksip_uac:message(sip_server, Uri, Options) of
             {ok, Code, _Meta} when Code >= 200, Code < 300 ->

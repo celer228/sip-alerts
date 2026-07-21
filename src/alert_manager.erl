@@ -65,11 +65,11 @@ handle_cast({send, #alert{id = AlertId} = Alert}, #mgr_deps{db = Db, tq = Tq} = 
     %% для всех завели delivery
     ChannelContacts = [
         {ChannelMod, [
-            {ContactData, begin
+            {ContactId, begin
                 {ok, DeliveryId} = Db:create_delivery(Alert, SubId),
                 DeliveryId
             end}
-         || #subscriber{id = SubId, contact_data = ContactData} <- Db:list_subscribers_channel(
+         || #subscriber{id = SubId, contact_key = {_, ContactId}} <- Db:list_subscribers_channel(
                 ChannelMod
             )
         ]}
@@ -81,8 +81,8 @@ handle_cast({send, #alert{id = AlertId} = Alert}, #mgr_deps{db = Db, tq = Tq} = 
     lists:foreach(
         fun({ChannelMod, Contacts}) ->
             ok = ChannelMod:batch_send(AlertId, AlertMsg, [
-                ContactData
-             || {ContactData, _} <- Contacts
+                ContactId
+             || {ContactId, _} <- Contacts
             ]),
             ?DEBUGER("Channel: ~p, Contacts: ~p, AlertId: ~p", [ChannelMod, Contacts, AlertId]),
             lists:foreach(
@@ -106,7 +106,7 @@ handle_cast({mark_delivery, AlertId, ChannelMod, ContactId}, #mgr_deps{db = Db, 
         AlertId, SubId
     ),
     %% отменили таймер на доставку
-    ok = Tq:cancel(DeliveryTimerId),
+    % ok = Tq:cancel(DeliveryTimerId),
     {ok, ConfirmationTimerId} = Tq:add(
         ?CONFIRMATION_TIMEOUT, {callback, ?MODULE, mark_confirmation_timeout}, DeliveryId
     ),
@@ -156,7 +156,7 @@ handle_cast({mark_confirm, AlertId, ChannelMod, ContactId}, #mgr_deps{db = Db, t
     ),
 
     %% отменили таймер на доставку
-    ok = Tq:cancel(ConfirmationTimerId),
+    % ok = Tq:cancel(ConfirmationTimerId),
     ok = Db:update_delivery_status(DeliveryId, confirmed, unchanged),
 
     {ok, Alert} = Db:get_alert(AlertId),

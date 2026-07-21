@@ -10,7 +10,7 @@
     worker_pool
    ]},
   {env,[
-    {core_module, sipalerts_db}
+    {core_module, alert_manager}
   ]},
   {modules, []},
 

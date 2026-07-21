@@ -103,7 +103,13 @@ sip_invite(Req, _Call) ->
             handle_unregistration(ContactId);
 
         {ok, <<"4808">>, ContactId} ->
-            handle_confirmation(ContactId);
+            AlertId = case nksip_request:header(<<"subject">>, Req) of
+                {ok, [Id | _]} -> 
+                    ?DEBUGER("ID ~p", [Id]),
+                    Id;
+                {ok, []} -> undefined
+            end,
+            handle_confirmation(ContactId, AlertId);
 
         {ok, _, _} ->
             {reply, decline};
@@ -225,10 +231,10 @@ handle_unregistration(ContactId) ->
             {reply, forbidden}
     end.
 
-handle_confirmation(ContactId) ->
+handle_confirmation(ContactId, AlertId) ->
     Core = core_module(),
 
-    case Core:mark_confirmation(undefined, ContactId, sip_channel) of
+    case Core:mark_confirmation(AlertId, ContactId, sip_channel) of
         ok ->
             {reply, {487, []}};
 

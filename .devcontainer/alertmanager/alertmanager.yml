@@ -7,7 +7,7 @@ route:
   # Минимальный интервал между уведомлениями одной группы
   group_interval: 10s
   # Повторять уведомление об активном алерте каждые 60 секунд
-  repeat_interval: 60s
+  repeat_interval: 40s
 
 receivers:
   - name: webhook_receiver

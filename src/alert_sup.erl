@@ -55,7 +55,7 @@ init([]) ->
 
     AlertManagerWPoolOpts = [
         {workers, 10},
-        {worker, {alert_manager, #mgr_deps{db = sipalerts_db, tq = timer_queue}}}
+        {worker, {alert_manager, #mgr_deps{db = sipalerts_db, tq = timer_queue, log = alert_log}}}
     ],
 
     AlertManagerWPool = #{
