@@ -28,23 +28,28 @@ sip_authorize(AuthList, Req, _Call) ->
     io:format("FromUser = ~p~n", [FromUser]),
     FoundedUser = find_user_no_auth(FromUser),
     io:format("sip_server: trying to auth user ~p~n", [FoundedUser]),
-    case lists:member(dialog, AuthList) orelse lists:member(register, AuthList) of
-        true ->
-            io:format("Authorized (dialog or register)~n", []),
+    case {Method, FromUser} of
+        {'MESSAGE', <<"alert_manager">>} ->
             ok;
-        false ->
-            case proplists:get_value({digest, <<"nksip">>}, AuthList) of
+        _ ->
+            case lists:member(dialog, AuthList) orelse lists:member(register, AuthList) of
                 true ->
-                    io:format("Authorized (digest ok)~n", []),
+                    io:format("Authorized (dialog or register)~n", []),
                     ok;
                 false ->
-                    io:format("Forbidden (digest failed)~n", []),
-                    forbidden;
-                undefined ->
-                    io:format("Challenge (no digest yet)~n", []),
-                    {proxy_authenticate, <<"nksip">>}
+                    case proplists:get_value({digest, <<"nksip">>}, AuthList) of
+                        true ->
+                            io:format("Authorized (digest ok)~n", []),
+                            ok;
+                        false ->
+                            io:format("Forbidden (digest failed)~n", []),
+                            forbidden;
+                        undefined ->
+                            io:format("Challenge (no digest yet)~n", []),
+                            {proxy_authenticate, <<"nksip">>}
+                    end
             end
-        end.
+    end.
 
 
 %% This function is called by NkSIP for every new request, to check if it must be proxied, processed locally or replied immediately
@@ -143,7 +148,18 @@ sip_registrar_store(SrvId, del_all) ->
             end
         end,
 
-    nklib_store:fold(FoldFun, none).
+    nklib_store:fold(FoldFun, none);
+
+sip_registrar_store(_SrvId, list) ->
+    FoldFun = fun(Key, Value, Acc) ->
+        case Key of
+            {nksip_registrar, _, AOR} ->
+                [{AOR, Value} | Acc];
+            _ ->
+                Acc
+        end
+    end,
+    nklib_store:fold(FoldFun, []).
 
 
 %%--------------------------------------------------------------------
@@ -195,15 +211,18 @@ handle_unregistration(ContactId) ->
             case sipalerts_db:delete_subscriber(SubscriberId) of
                 ok ->
                     io:format("Delete sub~n"),
-                    {reply, ok};
-                {error, _Reason} ->
-                    {reply, internal_error}
+                    {reply, {487, []}};
+                {error, Reason} ->
+                    io:format("Error = ~p~n", [Reason]),
+                    {reply, forbidden}
             end;
 
         {error, not_found} ->
-            {reply, ok};
-        {error, _Reason} ->
-            {reply, internal_error}
+            io:format("Error = not_found~n"),
+            {reply, forbidden};
+        {error, Reason} ->
+            io:format("Error = ~p~n", [Reason]),
+            {reply, forbidden}
     end.
 
 handle_confirmation(ContactId) ->
@@ -211,13 +230,15 @@ handle_confirmation(ContactId) ->
 
     case Core:mark_confirmation(undefined, ContactId, sip_channel) of
         ok ->
-            {reply, ok};
+            {reply, {487, []}};
 
         {error, no_pending_alarm} ->
-            {reply, decline};
+            io:format("Error = no_pending_alarm~n"),
+            {reply, forbidden};
 
-        {error, _Reason} ->
-            {reply, internal_error}
+        {error, Reason} ->
+            io:format("Error = ~p~n", [Reason]),
+            {reply, forbidden}
     end.
 
 % sub_db_module() ->

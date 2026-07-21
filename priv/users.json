@@ -42,6 +42,14 @@
              "authType" : "yes",
              "userLogin" : "3006",
              "userPass": "test"
-          }}
+          }},
+         {"userID" : "5",
+          "userName" : "alert_manager",
+          "userPhone" : "alert_manager",
+          "userAuth" : {
+             "authType" : "yes",
+             "userLogin" : "alert_manager",
+             "userPass" : "test"
+         }}
     ]
 }

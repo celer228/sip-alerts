@@ -14,10 +14,7 @@ batch_send(AlertId, AlertMsg, ContactIds)
         when is_binary(AlertId),
              is_binary(AlertMsg),
              is_list(ContactIds) ->
-    Results = [
-        send_message(AlertId, AlertMsg, ContactId)
-        || ContactId <- ContactIds
-    ],
+    Results = [send_message(AlertId, AlertMsg, ContactId) || ContactId <- ContactIds],
     case first_error(Results) of
         none ->
             ok;
@@ -34,6 +31,7 @@ send_message(AlertId, AlertMsg, ContactId) when is_binary(ContactId) ->
 
     Options = [
         {expires, 10},
+        {from, <<"sip:alert_manager@localhost">>},
         {content_type, <<"text/plain">>},
         {body, AlertMsg}
     ],
@@ -41,14 +39,17 @@ send_message(AlertId, AlertMsg, ContactId) when is_binary(ContactId) ->
     %% nksip_uac:message(alertsender, "sip:3003@localhost:5060", [{expires, 10}, {content_type, <<"text/plain">>}, {body, <<"Hello\n">>}]).
 
     try
-        case nksip_uac:message(sip_client, Uri, Options) of
+        case nksip_uac:message(sip_server, Uri, Options) of
             {ok, Code, _Meta} when Code >= 200, Code < 300 ->
+                io:format("SIP_CHANNEL: MESSAGE SENDED~n"),
                 mark_delivery(AlertId, ContactId);
 
             {ok, Code, _Meta} ->
+                io:format("SIP_CHANNEL: RESPONSE ERROR~n"),
                 {error, {sip_response, Code}};
 
             {error, SipReason} ->
+                io:format("SIP_CHANNEL: SIP REASON =~p~n", [SipReason]),
                 {error, {sip_error, SipReason}};
 
             {async, _Handle} ->
@@ -63,6 +64,7 @@ send_message(AlertId, AlertMsg, ContactId) when is_binary(ContactId) ->
     end;
 
 send_message(_AlertId, _AlertMsg, ContactId) ->
+    io:format("SIP_CHANNEL: INVALID CONTACT ID = ~p~n", [ContactId]),
     {error, {invalid_contact_id, ContactId}}.
 
 
@@ -70,7 +72,9 @@ build_uri(<<"sip:", _/binary>> = ContactId) ->
     ContactId;
 
 build_uri(ContactId) ->
-    <<"sip:", ContactId/binary>>.
+    Uri = <<"sip:", ContactId/binary, "@localhost">>,
+    io:format("SIP_CHANNEL: BUILD URI ~p~n", [Uri]),
+    Uri.
 
 
 mark_delivery(AlertId, ContactId) ->
