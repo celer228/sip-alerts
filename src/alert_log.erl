@@ -26,7 +26,7 @@
     code_change/3
 ]).
 
--define(DEFAULT_LOG_FILE, "log/alarm_activity.log").
+-define(DEFAULT_LOG_FILE, "log/alert_activity.log").
 -define(DEFAULT_MAX_BYTES, 10485760).
 -define(DEFAULT_MAX_ARCHIVES, 5).
 
@@ -68,9 +68,9 @@ get_report() ->
 
 -spec init([]) -> {ok, #state{}} | {stop, term()}.
 init([]) ->
-    RawPath = application:get_env(sipalerts, alarm_log_file, ?DEFAULT_LOG_FILE),
-    MaxBytes = application:get_env(sipalerts, alarm_log_max_bytes, ?DEFAULT_MAX_BYTES),
-    MaxArchives = application:get_env(sipalerts, alarm_log_max_archives, ?DEFAULT_MAX_ARCHIVES),
+    RawPath = application:get_env(sipalerts, alert_log_file, ?DEFAULT_LOG_FILE),
+    MaxBytes = application:get_env(sipalerts, alert_log_max_bytes, ?DEFAULT_MAX_BYTES),
+    MaxArchives = application:get_env(sipalerts, alert_log_max_archives, ?DEFAULT_MAX_ARCHIVES),
     Path = normalize_path(RawPath),
 
     case validate_config(Path, MaxBytes, MaxArchives) of
@@ -88,7 +88,7 @@ init_open_log(Path, MaxBytes, MaxArchives) ->
                 max_bytes = MaxBytes, max_archives = MaxArchives
             }};
         {error, Reason} ->
-            {stop, {alarm_log_open_failed, Reason}}
+            {stop, {alert_log_open_failed, Reason}}
     end.
 
 handle_call(get_report, _From, State = #state{file = File, path = Path, max_archives = MaxArchives}) ->
@@ -107,7 +107,7 @@ handle_cast({log, Status, Client, Message, AlarmId, Reason}, State0) ->
         {ok, State1} ->
             write_to_file(Line, State1);
         {error, RotateReason, State1} ->
-            logger:error("alarm_log: ошибка ротации: ~p", [RotateReason]),
+            logger:error("alert_log: ошибка ротации: ~p", [RotateReason]),
             {noreply, State1}
     end;
 handle_cast(_Message, State) ->
@@ -122,7 +122,7 @@ write_to_file(Line, State) ->
             ok = file:sync(State#state.file),
             {noreply, State};
         {error, WriteReason} ->
-            logger:error("alarm_log: ошибка записи: ~p", [WriteReason]),
+            logger:error("alert_log: ошибка записи: ~p", [WriteReason]),
             {noreply, State}
     end.
 
@@ -318,6 +318,6 @@ validate_config(Path, MaxBytes, MaxArchives)
        is_integer(MaxArchives), MaxArchives >= 0 ->
     ok;
 validate_config(Path, MaxBytes, MaxArchives) ->
-    {error, {invalid_alarm_log_config, #{
+    {error, {invalid_alert_log_config, #{
         file => Path, max_bytes => MaxBytes, max_archives => MaxArchives
     }}}.
