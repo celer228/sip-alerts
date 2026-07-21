@@ -11,6 +11,9 @@
 
 -export([init/1]).
 
+-include("alert_acceptor.hrl").
+-include("alert_manager.hrl").
+
 -define(SERVER, ?MODULE).
 
 % Временная заглушка для тестирования супервизора
@@ -36,21 +39,42 @@ init([]) ->
     %                type => worker,
     %                modules => [sipalerts_db]},
 
-    AlertManager = #{id => alert_manager,
-                  start => {?DUMMY, start_link, [alert_manager]},
-                  restart => permanent,
-                  shutdown => 5000,
-                  type => worker,
-                  modules => [alert_manager]},
+    AlertAcceptorWPoolOpts = [
+        {workers, 10},
+        {worker, {alert_acceptor, #accept_deps{db = sipalerts_db}}}
+    ],
+
+    AlertAcceptorWPool = #{
+        id => alert_acceptor,
+        start => {wpool, start_pool, [alert_acceptor, AlertAcceptorWPoolOpts]},
+        restart => permanent,
+        shutdown => infinity,
+        type => supervisor,
+        modules => [wpool]
+    },
+
+    AlertManagerWPoolOpts = [
+        {workers, 10},
+        {worker, {alert_manager, #mgr_deps{db = sipalerts_db, tq = timer_queue}}}
+    ],
+
+    AlertManagerWPool = #{
+        id => alert_manager,
+        start => {wpool, start_pool, [alert_manager, AlertManagerWPoolOpts]},
+        restart => permanent,
+        shutdown => infinity,
+        type => supervisor,
+        modules => [wpool]
+    },
 
     TimerQueue = #{
-                  id => timer_queue,
-                  start => {timer_queue, start_link, []},
-                  restart => permanent,
-                  shutdown => 5000,
-                  type => worker,
-                  modules => [timer_queue]
-                 },
+        id => timer_queue,
+        start => {timer_queue, start_link, []},
+        restart => permanent,
+        shutdown => 5000,
+        type => worker,
+        modules => [timer_queue]
+    },
 
     AlertLog = #{id => alert_log,
                   start => {alert_log, start_link, []},
@@ -59,10 +83,12 @@ init([]) ->
                   type => worker,
                   modules => [alert_log]},
 
-    SupFlags = #{strategy => one_for_one,
-                 intensity => 5,
-                 period => 10},
-    ChildSpecs = [AlertManager, AlertLog, TimerQueue],
+    SupFlags = #{
+        strategy => one_for_one,
+        intensity => 5,
+        period => 10
+    },
+    ChildSpecs = [AlertLog, TimerQueue, AlertAcceptorWPool, AlertManagerWPool],
     {ok, {SupFlags, ChildSpecs}}.
 
 %% internal functions
