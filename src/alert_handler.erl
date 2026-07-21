@@ -38,7 +38,8 @@ init(Req0, State) ->
                     ),
                     {ok, Req, State};
                 {ok, Alert} ->
-                    % alert_manager:new_alert(Alert),
+                    ?DEBUGER("sending to acceptor ~p", [Alert]),
+                    alert_acceptor:new_alert(Alert),
                     Response = jsx:encode(Webhook),
                     Req = cowboy_req:reply(200,
                         #{<<"content-type">> => <<"application/json">>},
