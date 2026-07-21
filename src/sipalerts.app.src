@@ -6,7 +6,8 @@
   {applications,
    [kernel,
     stdlib,
-    nksip
+    nksip,
+    worker_pool
    ]},
   {env,[
     {core_module, sipalerts_db}

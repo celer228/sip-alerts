@@ -12,6 +12,7 @@
 -export([init/1]).
 
 -include("alert_acceptor.hrl").
+-include("alert_manager.hrl").
 
 -define(SERVER, ?MODULE).
 
@@ -54,7 +55,7 @@ init([]) ->
 
     AlertManagerWPoolOpts = [
         {workers, 10},
-        {worker, {alert_acceptor, #accept_deps{db = sipalerts_db}}}
+        {worker, {alert_manager, #mgr_deps{db = sipalerts_db, tq = timer_queue}}}
     ],
 
     AlertManagerWPool = #{
