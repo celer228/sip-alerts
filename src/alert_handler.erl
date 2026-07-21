@@ -15,7 +15,7 @@ init(Req0, State) ->
             Webhook = jsx:decode(Body, [return_maps]),
             Source = cowboy_req:binding(source, Req0),
 
-            ?DEBUGER("Webhook = ~p~nSource = ~p~n", [Webhook, Source]),
+            % ?DEBUGER("Webhook = ~p~nSource = ~p~n", [Webhook, Source]),
 
             Res = case Source of
                 <<"prometheus">> -> prometheus_adapter:normalize(Webhook);

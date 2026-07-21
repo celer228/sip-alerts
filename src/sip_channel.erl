@@ -38,8 +38,10 @@ send_message(AlertId, AlertMsg, ContactId) when is_binary(ContactId) ->
         {body, AlertMsg}
     ],
 
+    %% nksip_uac:message(alertsender, "sip:3003@localhost:5060", [{expires, 10}, {content_type, <<"text/plain">>}, {body, <<"Hello\n">>}]).
+
     try
-        case nksip_uac:message(sip_server, Uri, Options) of
+        case nksip_uac:message(sip_client, Uri, Options) of
             {ok, Code, _Meta} when Code >= 200, Code < 300 ->
                 mark_delivery(AlertId, ContactId);
 

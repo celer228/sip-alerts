@@ -26,6 +26,22 @@
             "userLogin" : "3005",
             "userPass": "test"
          }
-        }
+        },
+        {"userID" : "3",
+         "userName" : "sip_server",
+         "userPhone" : "sip_server",
+         "userAuth" : {
+            "authType" : "yes",
+            "userLogin" : "sip_server",
+            "userPass" : "test"
+         }},
+         {"userID": "4",
+          "userName" : "pupkin",
+          "userPhone" : "3006",
+          "userAuth": {
+             "authType" : "yes",
+             "userLogin" : "3006",
+             "userPass": "test"
+          }}
     ]
 }

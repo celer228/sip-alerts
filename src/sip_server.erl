@@ -2,11 +2,12 @@
 
 -include_lib("nkserver/include/nkserver_module.hrl").
 
+-include("debuger.hrl").
+
 -export([
     sip_register/2,
     sip_invite/2,
     sip_message/2,
-    sip_ack/2,
     sip_registrar_store/2,
     sip_get_user_pass/4,
     sip_authorize/3,
@@ -46,19 +47,28 @@ sip_authorize(AuthList, Req, _Call) ->
         end.
 
 
-%% This function is called by NkSIP for every new request, to che5ck if it must be proxied, processed locally or replied immediately
-sip_route(_Scheme, <<>>, <<"localhost">>, _Req, _Call) ->
-    % we want to act as an endpoint or B2BUA
-    io:format("sip_server: sip_route(User = <<>>)~n"),
-    process;
+%% This function is called by NkSIP for every new request, to check if it must be proxied, processed locally or replied immediately
 
 sip_route(_Scheme, User, _Domain, Req, _Call) ->
     io:format("sip_server: sip_route(User = ~p)~n", [User]),
-    case nksip_request:is_local_ruri(Req) of
+    % %% nksip_request:is_local_ruri не отрабатывает в контейнере так, как нам нужно, поэтому ей не пользуемся
+    Res = container_is_local_ruri(Req),
+    ?DEBUGER("Domain: ~p, TO DOMAIN: ~p", [_Domain, Res]),
+    % [{} = nksip_request:get_meta(Field, Arg2),
+    case Res of
         true ->
             process;
         false ->
             proxy
+    end.
+
+container_is_local_ruri(Req) ->
+    {ok, ToDomain} = nksip_request:get_meta(to_domain, Req),
+    case ToDomain of
+        <<"172.19.0.1">> -> true;
+        <<"127.0.0.1">> -> true;
+        <<"localhost">> -> true;
+        _ -> false
     end.
 
 sip_register(Req, _Call) ->
@@ -98,10 +108,11 @@ sip_invite(Req, _Call) ->
     end.
 
 sip_message(_Req, _Call) ->
+    ?DEBUGER("REQ ~p, CALL ~p", [_Req, _Call]),
     {reply, ok}.
 
-sip_ack(_Req, _Call) ->
-    ok.
+% sip_ack(_Req, _Call) ->
+%     ok.
 
 
 %%--------------------------------------------------------------------
@@ -198,7 +209,7 @@ handle_unregistration(ContactId) ->
 handle_confirmation(ContactId) ->
     Core = core_module(),
 
-    case Core:mark_confirmation(undefined, ContactId, ?MODULE) of
+    case Core:mark_confirmation(undefined, ContactId, sip_channel) of
         ok ->
             {reply, ok};
 
