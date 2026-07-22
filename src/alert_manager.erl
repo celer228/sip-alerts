@@ -109,7 +109,7 @@ handle_cast({mark_delivery, AlertId, ChannelMod, ContactId}, #mgr_deps{db = Db, 
     ),
     %% отменили таймер на доставку
     % ok = Tq:cancel(DeliveryTimerId),
-    ok = Db:update_delivery_status(DeliveryId, delivered, ConfirmationTimerId),
+    ok = Db:update_delivery_status(DeliveryId, delivered, DeliveryTimerId),
     
     {ok, Alert} = Db:get_alert(AlertId),
 
