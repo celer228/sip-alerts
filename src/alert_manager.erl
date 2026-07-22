@@ -109,9 +109,6 @@ handle_cast({mark_delivery, AlertId, ChannelMod, ContactId}, #mgr_deps{db = Db, 
     ),
     %% отменили таймер на доставку
     % ok = Tq:cancel(DeliveryTimerId),
-    {ok, ConfirmationTimerId} = Tq:add(
-        ?CONFIRMATION_TIMEOUT, {callback, ?MODULE, mark_confirmation_timeout}, DeliveryId
-    ),
     ok = Db:update_delivery_status(DeliveryId, delivered, ConfirmationTimerId),
     
     {ok, Alert} = Db:get_alert(AlertId),
@@ -123,7 +120,6 @@ handle_cast({mark_delivery, AlertId, ChannelMod, ContactId}, #mgr_deps{db = Db, 
     ]),
     {noreply, State};
 handle_cast({delivery_timeout, DeliveryId}, #mgr_deps{db = Db, log = Log} = State) ->
-    
     {ok, #delivery{status = Status} = Delivery} = Db:get_delivery(DeliveryId),
 
     %% TODO на случай, если вдруг таймер отменили, но он всё равно успел прийти
@@ -215,16 +211,6 @@ terminate(_Reason, _State) ->
 %%====================================================================
 %% Внутренние функции
 %%====================================================================
-
-%% TODO нужно ли?
-% check_all_finished(Db, alertId) ->
-%     case Db:all_deliveries_finished(alertId) of
-%         true ->
-%             alert_log:write_final_report(alertId),
-%             Db:finalize_alert(alertId);
-%         false ->
-%             ok
-%     end.
 
 %% TODO надо заменить на функцию, которая динамически это определяет
 get_running_channels() -> [sip_channel].

@@ -17,7 +17,7 @@
 -define(SERVER, ?MODULE).
 
 % Временная заглушка для тестирования супервизора
--define(DUMMY, dummy_server).
+% -define(DUMMY, dummy_server).
 
 start_link() ->
     supervisor:start_link({local, ?SERVER}, ?MODULE, []).
