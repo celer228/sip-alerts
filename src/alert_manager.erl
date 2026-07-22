@@ -102,6 +102,8 @@ handle_cast({mark_delivery, AlertId, ChannelMod, ContactId}, #mgr_deps{db = Db, 
     {ok, SubId} = Db:get_subscriber_by_contact(ChannelMod, ContactId),
     ?DEBUGER("SubId, mark delivery ~p", [SubId]),
     % #delivery{delivery_id = DeliveryId, timer_id = DeliveryTimerId}
+    % 
+    
     {ok, #delivery{delivery_id = DeliveryId, timer_id = DeliveryTimerId} = Delivery} = Db:get_delivery_by_key(
         AlertId, SubId
     ),
@@ -121,6 +123,7 @@ handle_cast({mark_delivery, AlertId, ChannelMod, ContactId}, #mgr_deps{db = Db, 
     ]),
     {noreply, State};
 handle_cast({delivery_timeout, DeliveryId}, #mgr_deps{db = Db, log = Log} = State) ->
+    
     {ok, #delivery{status = Status} = Delivery} = Db:get_delivery(DeliveryId),
 
     %% TODO на случай, если вдруг таймер отменили, но он всё равно успел прийти

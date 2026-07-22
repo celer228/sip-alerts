@@ -33,7 +33,7 @@ send_message(AlertId, AlertMsg, ContactId) when is_binary(ContactId) ->
 
     Options = [
         {expires, 10},
-        {from, <<"sip:alert_manager@localhost">>},
+        {from, <<"sip:alert_manager@127.0.0.1">>},
         {content_type, <<"text/plain">>},
         {body, AlertMsg}
     ],
@@ -45,7 +45,8 @@ send_message(AlertId, AlertMsg, ContactId) when is_binary(ContactId) ->
         case nksip_uac:message(sip_server, Uri, Options) of
             {ok, Code, _Meta} when Code >= 200, Code < 300 ->
                 io:format("SIP_CHANNEL: MESSAGE SENDED~n"),
-                mark_delivery(AlertId, ContactId);
+                ok;
+                % mark_delivery(AlertId, ContactId);
 
             {ok, Code, _Meta} ->
                 io:format("SIP_CHANNEL: RESPONSE ERROR~n"),
@@ -75,7 +76,7 @@ build_uri(<<"sip:", _/binary>> = ContactId) ->
     ContactId;
 
 build_uri(ContactId) ->
-    Uri = <<"sip:", ContactId/binary, "@localhost">>,
+    Uri = <<"sip:", ContactId/binary, "@172.18.0.1:5061">>,
     io:format("SIP_CHANNEL: BUILD URI ~p~n", [Uri]),
     Uri.
 

@@ -47,13 +47,13 @@ services:
     networks:
       - alert-net
 
-  request-catcher:
-    build:
-      context: ./http-request-catcher
-    ports: 
-      - "9191:5000"
-    networks:
-      - alert-net
+  # request-catcher:
+  #   build:
+  #     context: ./http-request-catcher
+  #   ports: 
+  #     - "9191:5000"
+  #   networks:
+  #     - alert-net
 
 
 networks:

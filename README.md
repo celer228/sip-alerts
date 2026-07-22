@@ -1,5 +1,23 @@
 # SIP alerts
 
+## Запуск
+```
+./tools/start_app.sh
+```
+Откроется eshell с запущенным приложением.
+
+Текущий список SIP-абонентов находится в файле
+```./priv/users.json```
+
+Для SIP-абонентов операции - звонок на следующие номера:
+1. ```4800``` - подписаться на уведомления
+2. ```4804``` - отписаться от уведомлений
+3. ```4808, Subject = AlertId``` - подтвердить получение алерта с соответствующим ID
+
+Текущий статус уведомления отображается в логах работающего приложения.
+
+Логи можно получить через HTTP GET отсюда: http://localhost:8080/log/alert_activity/
+
 ## Настройка development environment
 
 > Подразумевается, что Docker установлен по [инструкции с официального сайта](https://docs.docker.com/engine/install). Корректная работа других версий (из snap, например) не гарантируется 
@@ -57,19 +75,21 @@
 
 ## Дерево супервизоров
 
-![Дерево супервизоров](images/Tree_sup.png)
+![Дерево супервизоров](images/Tree_sup.drawio.png)
 
 ## Диаграмма компонентов
 
-![Диаграмма компонентов](images/component_diagram.png)
+![Диаграмма компонентов](images/5.png)
 
 ## sequence diagram (for alert)
 
-![recieve_alam_sd](images/receive_alarm_sd.png)
+![recieve_alam_sd](images/1.png)
 
-![else_sd_1](images/else_sd_1.png)
+![else_sd_1](images/2.png)
 
-![else_sd_2](images/else_sd_2.png)
+![else_sd_2](images/3.png)
+
+![else_sd_3](images/4.png)
 
 ## sequence diagram (for sub)
 

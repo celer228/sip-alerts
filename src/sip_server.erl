@@ -69,12 +69,14 @@ sip_route(_Scheme, User, _Domain, Req, _Call) ->
 
 container_is_local_ruri(Req) ->
     {ok, ToDomain} = nksip_request:get_meta(to_domain, Req),
-    case ToDomain of
-        <<"172.19.0.1">> -> true;
-        <<"127.0.0.1">> -> true;
-        <<"localhost">> -> true;
-        _ -> false
-    end.
+    true.
+    % case ToDomain of
+    %     <<"172.19.0.1">> -> true;
+    %     <<"172.17.0.1">> -> true;
+    %     <<"127.0.0.1">> -> true;
+    %     <<"localhost">> -> true;
+    %     _ -> false
+    % end.
 
 sip_register(Req, _Call) ->
     {ok, [{from_scheme, FromScheme}, {from_user, FromUser}, {from_domain, FromDomain}]} =
