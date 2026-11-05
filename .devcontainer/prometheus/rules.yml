@@ -1,15 +1,109 @@
 groups:
+  - name: test
 
-- name: test
+    rules:
 
-  rules:
+      - alert: HighCpuUsage
+        expr: vector(1)
+        for: 10s
+        labels:
+          severity: critical
+        annotations:
+          summary: "High CPU usage"
+          description: "CPU usage exceeded 95%."
 
-  - alert: TestAlert
-    expr: vector(1) # This is a test alert that will always fire
-    for: 10s
-    labels:
-      severity: critical
-    annotations:
-      summary: "Test alarm"
+      - alert: HighMemoryUsage
+        expr: vector(1)
+        for: 15s
+        labels:
+          severity: warning
+        annotations:
+          summary: "High memory usage"
+          description: "Memory usage exceeded 85%."
 
-      description: "This is only a test."
+  - name: test1
+
+    rules:
+
+      - alert: DiskAlmostFull
+        expr: vector(1)
+        for: 20s
+        labels:
+          severity: critical
+        annotations:
+          summary: "Disk space is almost full"
+          description: "Less than 5% free disk space remaining."
+
+      - alert: DatabaseUnavailable
+        expr: vector(1)
+        for: 5s
+        labels:
+          severity: critical
+        annotations:
+          summary: "Database unavailable"
+          description: "PostgreSQL is not responding."
+
+  
+  - name: test2
+
+    rules:
+
+      - alert: SipServerDown
+        expr: vector(1)
+        for: 5s
+        labels:
+          severity: critical
+        annotations:
+          summary: "SIP server unavailable"
+          description: "NkSIP server cannot be reached."
+
+      - alert: ApiResponseSlow
+        expr: vector(1)
+        for: 30s
+        labels:
+          severity: warning
+        annotations:
+          summary: "API response time is high"
+          description: "Average response time exceeded 2 seconds."
+
+      - alert: NodeExporterDown
+        expr: vector(1)
+        for: 10s
+        labels:
+          severity: warning
+        annotations:
+          summary: "Node Exporter unavailable"
+          description: "Prometheus cannot scrape node_exporter."
+
+
+  - name: test3
+
+    rules:
+
+      - alert: TooManyHttpErrors
+        expr: vector(1)
+        for: 20s
+        labels:
+          severity: warning
+        annotations:
+          summary: "Too many HTTP 5xx errors"
+          description: "Error rate exceeded acceptable threshold."
+
+
+      - alert: RabbitMqUnavailable
+        expr: vector(1)
+        for: 15s
+        labels:
+          severity: critical
+        annotations:
+          summary: "RabbitMQ unavailable"
+          description: "Message broker is not responding."
+
+      - alert: TestAlarm
+        expr: vector(1)
+        for: 10s
+        labels:
+          severity: info
+        annotations:
+          summary: "Test alarm"
+          description: "This alert is used for integration testing."
